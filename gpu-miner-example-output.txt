@@ -1,0 +1,49 @@
+╔═══════════════════════════════════════════════════════════════════╗
+║              Bckn GPU Miner - Enhanced Edition v2.0               ║
+╚═══════════════════════════════════════════════════════════════════╝
+
+Address: k5znsj6p2f3q...wzx8kr9vhm
+Runtime: 0:45:32
+Current Work: 7896543210           Last Block: a3f521bc9087
+
+═══ Hashrate ═══
+Current: 752.46 MH/s   Average: 748.23 MH/s   Total: 2.041B hashes
+
+═══ GPU Status ═══
+GPU 0: Temp: 72°C     Util: 98%    [████████████████████]
+GPU 1: Temp: 74°C     Util: 97%    [███████████████████░]
+GPU 2: Temp: 71°C     Util: 99%    [████████████████████]
+GPU 3: Temp: 73°C     Util: 96%    [███████████████████░]
+
+═══ Mining Results ═══
+Blocks Found: 3       Session Earnings: 75.00 BCN       Last: 342s ago
+
+═══ Activity Log ═══
+[14:32:15] GPU 2: New work 7896543210, mining...
+[14:33:47] BLOCK FOUND! Hash: b4f892a1c3d5, Reward: 25 BCN
+[14:33:48] GPU 0: New work 7896543211, mining...
+[14:33:48] GPU 1: New work 7896543211, mining...
+[14:33:48] GPU 2: New work 7896543211, mining...
+
+Press 'q' to quit | 's' for stats | 'h' for help
+
+
+═══════════════════════════════════════════════════════════════════
+Example commands to run the miner:
+
+1. Run with GUI (default):
+   $ python3 bckn-miner-gpu-enhanced.py YOUR_PRIVATE_KEY
+
+2. Run in background mode:
+   $ python3 bckn-miner-gpu-enhanced.py YOUR_PRIVATE_KEY --background
+   
+3. Generate a new address:
+   $ python3 bckn-miner-gpu-enhanced.py --generate
+
+4. Run with custom node:
+   $ python3 bckn-miner-gpu-enhanced.py YOUR_PRIVATE_KEY --node https://custom.bckn.node
+
+5. Background mode with systemd:
+   $ sudo systemctl start bckn-miner
+   $ sudo journalctl -u bckn-miner -f  # View logs
+═══════════════════════════════════════════════════════════════════
