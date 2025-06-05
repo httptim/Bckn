@@ -61,6 +61,8 @@ else
     # Download from your GitHub repository
     wget -O bckn-miner-cpu.cpp https://raw.githubusercontent.com/httptim/Bckn/master/bckn-miner-cpu.cpp
     wget -O Makefile https://raw.githubusercontent.com/httptim/Bckn/master/Makefile
+    wget -O bckn-miner-loop.sh https://raw.githubusercontent.com/httptim/Bckn/master/bckn-miner-loop.sh
+    chmod +x bckn-miner-loop.sh
 fi
 
 # Compile the miner
@@ -100,6 +102,12 @@ EOF
 chmod +x /tmp/run-bckn-miner.sh
 sudo mv /tmp/run-bckn-miner.sh /usr/local/bin/run-bckn-miner
 
+# Install the loop script
+if [ -f "bckn-miner-loop.sh" ]; then
+    sudo cp bckn-miner-loop.sh /usr/local/bin/
+    sudo chmod +x /usr/local/bin/bckn-miner-loop.sh
+fi
+
 # Create systemd service (optional)
 echo ""
 echo "Creating systemd service..."
@@ -134,8 +142,11 @@ echo "==================================="
 echo "Installation Complete!"
 echo "==================================="
 echo ""
-echo "To run the miner manually:"
+echo "To run the miner manually (single run):"
 echo "  run-bckn-miner YOUR_PRIVATE_KEY"
+echo ""
+echo "To run the miner continuously (recommended):"
+echo "  bckn-miner-loop.sh YOUR_PRIVATE_KEY"
 echo ""
 echo "To run as a service:"
 echo "  1. Edit /etc/systemd/system/bckn-miner.service"
