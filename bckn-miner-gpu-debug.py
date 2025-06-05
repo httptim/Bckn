@@ -82,6 +82,10 @@ def main():
     if len(sys.argv) > 2:
         test_nonce = int(sys.argv[2])
         verify_hash(address, last_hash, test_nonce, work)
+    
+    # Test the specific nonce that got stuck
+    print("\nTesting the stuck nonce 1090519040:")
+    verify_hash(address, last_hash, 1090519040, work)
 
 if __name__ == "__main__":
     main()

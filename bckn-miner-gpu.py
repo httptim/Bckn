@@ -286,7 +286,7 @@ def submit_block(address, nonce):
     
     return False
 
-def mine_gpu(address, last_hash, work):
+def mine_gpu(address, last_hash, work, max_iterations=1000):
     """GPU mining function"""
     global total_hashes
     
@@ -311,8 +311,9 @@ def mine_gpu(address, last_hash, work):
     nonce_start = 0
     threads_per_block = 256
     blocks_per_grid = GPU_BATCH_SIZE // threads_per_block
+    iterations = 0
     
-    while True:
+    while iterations < max_iterations:
         # Reset found flag
         cuda.memcpy_htod(d_found, np.int32(0))
         
@@ -338,13 +339,18 @@ def mine_gpu(address, last_hash, work):
         # Update counters
         nonce_start += GPU_BATCH_SIZE
         total_hashes += GPU_BATCH_SIZE
+        iterations += 1
         
         # Print stats
         elapsed = time.time() - start_time
         hashrate = total_hashes / elapsed if elapsed > 0 else 0
         print(f"\r[GPU] Hashrate: {hashrate/1_000_000:.2f} MH/s | "
               f"Total: {total_hashes/1_000_000_000:.2f}B | "
-              f"Current: {nonce_start}", end='', flush=True)
+              f"Blocks: {blocks_found} | "
+              f"Nonce: {nonce_start}", end='', flush=True)
+    
+    # Return None if no solution found in this batch
+    return None
 
 def main():
     global ADDRESS, PRIVATE_KEY, total_hashes, blocks_found
@@ -384,7 +390,6 @@ def main():
         # Get current mining parameters
         work, last_hash = get_mining_info()
         if not work:
-            print("Failed to get mining info, retrying...")
             time.sleep(5)
             continue
         
