@@ -42,8 +42,30 @@ except ImportError:
 BCKN_NODE = "https://bckn.dev"
 PRIVATE_KEY = None
 ADDRESS = None
-GPU_BATCH_SIZE = 1024 * 1024 * 16  # 16M hashes per batch per GPU
 NUM_GPUS = cuda.Device.count()
+
+# Auto-detect optimal batch size based on GPU memory
+def get_optimal_batch_size():
+    try:
+        # Get GPU memory info
+        dev = cuda.Device(0)
+        total_mem = dev.total_memory() // (1024 * 1024)  # Convert to MB
+        
+        # Set batch size based on available memory
+        if total_mem >= 80000:  # 80GB+ (H100)
+            return 1024 * 1024 * 32  # 32M hashes
+        elif total_mem >= 48000:  # 48GB+ (RTX 5090)
+            return 1024 * 1024 * 24  # 24M hashes
+        elif total_mem >= 24000:  # 24GB+ (RTX 3090/4090)
+            return 1024 * 1024 * 16  # 16M hashes
+        elif total_mem >= 16000:  # 16GB+
+            return 1024 * 1024 * 8   # 8M hashes
+        else:
+            return 1024 * 1024 * 4   # 4M hashes (minimum)
+    except:
+        return 1024 * 1024 * 16  # Default to 16M
+
+GPU_BATCH_SIZE = get_optimal_batch_size()
 
 # Global stats
 stats = {

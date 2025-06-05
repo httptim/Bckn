@@ -104,9 +104,35 @@ log "Detected $GPU_COUNT GPU(s)"
 log "Setting GPU persistence mode..."
 nvidia-smi -pm 1
 
-# Set maximum performance mode
+# Set maximum performance mode based on GPU type
 log "Setting GPU performance mode..."
-nvidia-smi -pl 350  # Set power limit to 350W for H100
+
+# Detect GPU model and set appropriate power limits
+GPU_NAME=$(nvidia-smi --query-gpu=name --format=csv,noheader | head -1)
+log "Detected GPU: $GPU_NAME"
+
+# Set power limits based on GPU model
+if [[ $GPU_NAME == *"H100"* ]]; then
+    POWER_LIMIT=350
+elif [[ $GPU_NAME == *"RTX 5090"* ]] || [[ $GPU_NAME == *"RTX 4090"* ]]; then
+    # RTX 5090/4090 typically support 450-600W
+    POWER_LIMIT=500
+elif [[ $GPU_NAME == *"RTX 4080"* ]]; then
+    POWER_LIMIT=320
+elif [[ $GPU_NAME == *"RTX 3090"* ]]; then
+    POWER_LIMIT=350
+elif [[ $GPU_NAME == *"A100"* ]]; then
+    POWER_LIMIT=300
+else
+    # Skip power limit setting for unknown GPUs
+    warning "Unknown GPU model. Skipping power limit configuration."
+    POWER_LIMIT=0
+fi
+
+if [ $POWER_LIMIT -gt 0 ]; then
+    log "Setting power limit to ${POWER_LIMIT}W..."
+    nvidia-smi -pl $POWER_LIMIT || warning "Failed to set power limit. GPU may use default settings."
+fi
 
 # Install Python GPU libraries
 log "Installing Python GPU libraries..."
