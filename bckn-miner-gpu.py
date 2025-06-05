@@ -279,14 +279,20 @@ def submit_block(address, nonce):
                 print(f"   Block Hash: {data.get('block', {}).get('hash', 'Unknown')}")
                 print(f"   Reward: {data.get('block', {}).get('value', 0)} BCN")
                 return True
+            else:
+                # API returned 200 but success=false
+                error_msg = data.get('error', 'Unknown error')
+                print(f"\n❌ Submission rejected: {error_msg}")
+                return False
         else:
-            print(f"\n❌ Submission failed: {response.text}")
+            print(f"\n❌ Submission failed: HTTP {response.status_code} - {response.text}")
+            return False
     except Exception as e:
         print(f"\n❌ Error submitting block: {e}")
     
     return False
 
-def mine_gpu(address, last_hash, work, max_iterations=1000):
+def mine_gpu(address, last_hash, work, start_nonce=0, max_iterations=1000):
     """GPU mining function"""
     global total_hashes
     
@@ -308,7 +314,7 @@ def mine_gpu(address, last_hash, work, max_iterations=1000):
     cuda.memcpy_htod(d_found, np.int32(0))
     
     # Mining loop
-    nonce_start = 0
+    nonce_start = start_nonce
     threads_per_block = 256
     blocks_per_grid = GPU_BATCH_SIZE // threads_per_block
     iterations = 0
@@ -385,6 +391,7 @@ def main():
     
     current_work = None
     current_hash = None
+    nonce_position = 0
     
     while True:
         # Get current mining parameters
@@ -398,19 +405,30 @@ def main():
             print(f"\nNew work: {work} | Last block: {last_hash}")
             current_work = work
             current_hash = last_hash
+            nonce_position = 0  # Reset nonce position on new work
         
-        # Mine on GPU
-        nonce = mine_gpu(ADDRESS, last_hash, work)
+        # Mine on GPU starting from current position
+        nonce = mine_gpu(ADDRESS, last_hash, work, start_nonce=nonce_position)
         
         if nonce:
             print(f"\n💎 Found potential solution! Nonce: {nonce}")
             print("   Submitting to network...")
             
             # Submit solution
-            if submit_block(ADDRESS, nonce):
-                blocks_found += 1
-            else:
-                print("   Submission failed, continuing mining...")
+            try:
+                if submit_block(ADDRESS, nonce):
+                    blocks_found += 1
+                    nonce_position = 0  # Reset on successful block
+                else:
+                    print("   Submission failed, continuing mining...")
+                    # Move past this nonce to avoid finding it again
+                    nonce_position = nonce + 1
+            except Exception as e:
+                print(f"   Submission error: {e}")
+                nonce_position = nonce + 1
+        else:
+            # No solution found in this batch, continue from where we left off
+            nonce_position += GPU_BATCH_SIZE * 1000  # max_iterations * batch_size
 
 if __name__ == "__main__":
     main()
