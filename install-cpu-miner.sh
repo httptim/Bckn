@@ -24,7 +24,25 @@ sudo apt-get install -y --no-install-recommends \
     libssl-dev \
     git \
     wget \
-    ca-certificates
+    ca-certificates \
+    pkg-config \
+    cmake
+
+# Check if jsoncpp headers are installed correctly
+if [ ! -f "/usr/include/jsoncpp/json/json.h" ] && [ ! -f "/usr/include/json/json.h" ]; then
+    echo "Installing jsoncpp from source..."
+    cd /tmp
+    git clone https://github.com/open-source-parsers/jsoncpp.git
+    cd jsoncpp
+    mkdir build
+    cd build
+    cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON
+    make -j$(nproc)
+    sudo make install
+    sudo ldconfig
+    cd /
+    rm -rf /tmp/jsoncpp
+fi
 
 # Create build directory
 BUILD_DIR="/tmp/bckn-miner-build"

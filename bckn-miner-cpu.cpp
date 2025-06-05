@@ -14,7 +14,15 @@
 #include <iomanip>
 #include <sstream>
 #include <curl/curl.h>
-#include <json/json.h>
+#ifdef __has_include
+  #if __has_include(<jsoncpp/json/json.h>)
+    #include <jsoncpp/json/json.h>
+  #else
+    #include <json/json.h>
+  #endif
+#else
+  #include <json/json.h>
+#endif
 #include <openssl/sha.h>
 
 const std::string BCKN_NODE = "https://bckn.dev";
