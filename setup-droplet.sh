@@ -112,7 +112,7 @@ if [ -d "${KRIST_DIR}" ]; then
     cd ${KRIST_DIR}
     sudo -u ${KRIST_USER} git pull
 else
-    sudo -u ${KRIST_USER} git clone https://github.com/tmpim/krist ${KRIST_DIR}
+    sudo -u ${KRIST_USER} git clone https://github.com/httptim/Bckn ${KRIST_DIR}
 fi
 
 # Install dependencies and build
