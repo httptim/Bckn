@@ -599,7 +599,7 @@ def run_background_mode(address):
         print("Shutting down...")
 
 def main():
-    global ADDRESS, PRIVATE_KEY
+    global ADDRESS, PRIVATE_KEY, BCKN_NODE
     
     parser = argparse.ArgumentParser(description='Bckn GPU Miner - Enhanced Edition')
     parser.add_argument('private_key', nargs='?', help='Your Bckn private key')
@@ -610,7 +610,6 @@ def main():
     args = parser.parse_args()
     
     # Update node URL if provided
-    global BCKN_NODE
     BCKN_NODE = args.node
     
     # Generate address if requested
