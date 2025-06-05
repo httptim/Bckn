@@ -113,7 +113,9 @@ apt-get install -y redis-server
 
 # Configure Redis with password
 echo -e "${YELLOW}Configuring Redis...${NC}"
-sed -i "s/# requirepass foobared/requirepass ${REDIS_PASS}/" /etc/redis/redis.conf
+# Escape special characters in password for sed
+REDIS_PASS_ESCAPED=$(printf '%s\n' "$REDIS_PASS" | sed 's/[[\.*^$()+?{|]/\\&/g')
+sed -i "s/# requirepass foobared/requirepass ${REDIS_PASS_ESCAPED}/" /etc/redis/redis.conf
 sed -i "s/supervised no/supervised systemd/" /etc/redis/redis.conf
 systemctl restart redis-server
 systemctl enable redis-server
