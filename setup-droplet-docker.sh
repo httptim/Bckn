@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Krist Server Setup Script for Digital Ocean Droplet
-# Tested on Ubuntu 24.10 with modern MariaDB, Redis, and Nginx
+# Krist Server Docker Setup Script for Digital Ocean Droplet
+# This script sets up Krist using Docker as recommended in the README
 
 set -e  # Exit on error
 set -o pipefail  # Exit on pipe failure
@@ -16,12 +16,9 @@ NC='\033[0m' # No Color
 # Configuration
 DOMAIN="bckn.dev"
 WS_DOMAIN="ws.bckn.dev"
-KRIST_USER="krist"
-KRIST_DIR="/home/krist/krist-server"
-NODE_VERSION="20"
-LETS_ENCRYPT_DIR="/var/www/letsencrypt"
+DOCKER_GATEWAY="172.17.0.1"  # Default Docker gateway
 
-echo -e "${BLUE}=== Krist Server Setup Script ===${NC}"
+echo -e "${BLUE}=== Krist Server Docker Setup Script ===${NC}"
 echo -e "${BLUE}Domain: ${DOMAIN}${NC}"
 echo -e "${BLUE}WebSocket Domain: ${WS_DOMAIN}${NC}"
 echo -e "${BLUE}Ubuntu Version: $(lsb_release -d | cut -f2)${NC}"
@@ -43,7 +40,7 @@ check_status() {
     fi
 }
 
-# Generate secure passwords (using hex to avoid special character issues)
+# Generate secure passwords
 echo -e "${YELLOW}Generating secure passwords...${NC}"
 DB_ROOT_PASS=$(openssl rand -hex 32)
 DB_KRIST_PASS=$(openssl rand -hex 32)
@@ -61,7 +58,6 @@ echo -e "${YELLOW}Installing system dependencies...${NC}"
 apt-get install -y -qq \
     curl \
     git \
-    build-essential \
     nginx \
     certbot \
     python3-certbot-nginx \
@@ -69,28 +65,28 @@ apt-get install -y -qq \
     fail2ban \
     htop \
     wget \
-    software-properties-common \
     gnupg \
-    lsb-release
+    lsb-release \
+    ca-certificates
 check_status "System dependencies installation"
 
-# Install Node.js for Ubuntu 24.x
-echo -e "${YELLOW}Installing Node.js v${NODE_VERSION}...${NC}"
-mkdir -p /etc/apt/keyrings
-curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
-echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_${NODE_VERSION}.x nodistro main" > /etc/apt/sources.list.d/nodesource.list
+# Install Docker
+echo -e "${YELLOW}Installing Docker...${NC}"
+# Add Docker's official GPG key
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+
+# Set up the repository
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+# Install Docker Engine
 apt-get update -qq
-apt-get install -y -qq nodejs
-check_status "Node.js installation"
+apt-get install -y -qq docker-ce docker-ce-cli containerd.io docker-compose-plugin
+check_status "Docker installation"
 
-# Verify Node.js installation
-node_version=$(node --version)
-echo -e "${GREEN}Node.js installed: ${node_version}${NC}"
-
-# Install pnpm
-echo -e "${YELLOW}Installing pnpm...${NC}"
-npm install -g pnpm@latest --silent
-check_status "pnpm installation"
+# Start and enable Docker
+systemctl start docker
+systemctl enable docker
+check_status "Docker service startup"
 
 # Install MariaDB
 echo -e "${YELLOW}Installing MariaDB...${NC}"
@@ -124,26 +120,36 @@ DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';
 FLUSH PRIVILEGES;
 EOF
 
-# Create Krist database and user
+# Create Krist database and user (allow connections from Docker)
 echo -e "${YELLOW}Creating Krist database...${NC}"
 mysql -u root -p"${DB_ROOT_PASS}" <<EOF
 CREATE DATABASE IF NOT EXISTS krist CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE USER IF NOT EXISTS 'krist'@'localhost' IDENTIFIED BY '${DB_KRIST_PASS}';
+CREATE USER IF NOT EXISTS 'krist'@'${DOCKER_GATEWAY}' IDENTIFIED BY '${DB_KRIST_PASS}';
+CREATE USER IF NOT EXISTS 'krist'@'172.%.%.%' IDENTIFIED BY '${DB_KRIST_PASS}';
 GRANT ALL PRIVILEGES ON krist.* TO 'krist'@'localhost';
+GRANT ALL PRIVILEGES ON krist.* TO 'krist'@'${DOCKER_GATEWAY}';
+GRANT ALL PRIVILEGES ON krist.* TO 'krist'@'172.%.%.%';
 FLUSH PRIVILEGES;
 EOF
 check_status "Krist database creation"
+
+# Configure MariaDB to listen on Docker interface
+echo -e "${YELLOW}Configuring MariaDB for Docker access...${NC}"
+sed -i 's/^bind-address.*/bind-address = 0.0.0.0/' /etc/mysql/mariadb.conf.d/50-server.cnf
+systemctl restart mariadb
+check_status "MariaDB Docker configuration"
 
 # Install Redis
 echo -e "${YELLOW}Installing Redis...${NC}"
 apt-get install -y -qq redis-server
 check_status "Redis installation"
 
-# Configure Redis (write complete config to avoid sed issues)
+# Configure Redis for Docker access
 echo -e "${YELLOW}Configuring Redis...${NC}"
 cat > /etc/redis/redis.conf <<EOF
 # Redis Configuration for Krist
-bind 127.0.0.1 ::1
+bind 0.0.0.0 ::
 protected-mode yes
 port 6379
 tcp-backlog 511
@@ -166,41 +172,6 @@ dbfilename dump.rdb
 dir /var/lib/redis
 requirepass ${REDIS_PASS}
 maxmemory-policy allkeys-lru
-lazyfree-lazy-eviction no
-lazyfree-lazy-expire no
-lazyfree-lazy-server-del no
-replica-lazy-flush no
-appendonly no
-appendfilename "appendonly.aof"
-appendfsync everysec
-no-appendfsync-on-rewrite no
-auto-aof-rewrite-percentage 100
-auto-aof-rewrite-min-size 64mb
-aof-load-truncated yes
-aof-use-rdb-preamble yes
-lua-time-limit 5000
-slowlog-log-slower-than 10000
-slowlog-max-len 128
-latency-monitor-threshold 0
-notify-keyspace-events ""
-hash-max-ziplist-entries 512
-hash-max-ziplist-value 64
-list-max-ziplist-size -2
-list-compress-depth 0
-set-max-intset-entries 512
-zset-max-ziplist-entries 128
-zset-max-ziplist-value 64
-hll-sparse-max-bytes 3000
-stream-node-max-bytes 4096
-stream-node-max-entries 100
-activerehashing yes
-client-output-buffer-limit normal 0 0 0
-client-output-buffer-limit replica 256mb 64mb 60
-client-output-buffer-limit pubsub 32mb 8mb 60
-hz 10
-dynamic-hz yes
-aof-rewrite-incremental-fsync yes
-rdb-save-incremental-fsync yes
 EOF
 
 chown redis:redis /etc/redis/redis.conf
@@ -218,132 +189,27 @@ else
     exit 1
 fi
 
-# Create krist user
-echo -e "${YELLOW}Creating krist user...${NC}"
-if ! id -u ${KRIST_USER} >/dev/null 2>&1; then
-    useradd -m -s /bin/bash ${KRIST_USER}
-    check_status "Krist user creation"
-else
-    echo -e "${GREEN}Krist user already exists${NC}"
-fi
-
-# Clone Krist repository
-echo -e "${YELLOW}Cloning Krist repository...${NC}"
-if [ -d "${KRIST_DIR}" ]; then
-    rm -rf ${KRIST_DIR}
-fi
-sudo -u ${KRIST_USER} git clone https://github.com/httptim/Bckn ${KRIST_DIR}
-check_status "Repository clone"
-
-# Install dependencies and build
-echo -e "${YELLOW}Installing Node.js dependencies...${NC}"
-cd ${KRIST_DIR}
-sudo -u ${KRIST_USER} pnpm install --frozen-lockfile
-check_status "Node.js dependencies installation"
-
-echo -e "${YELLOW}Building Krist...${NC}"
-sudo -u ${KRIST_USER} pnpm run build
-check_status "Krist build"
-
-# Create .env file
-echo -e "${YELLOW}Creating environment configuration...${NC}"
-cat > ${KRIST_DIR}/.env <<EOF
-# Database Configuration
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_NAME=krist
-DB_USER=krist
-DB_PASS=${DB_KRIST_PASS}
-
-# Redis Configuration
-REDIS_HOST=127.0.0.1
-REDIS_PORT=6379
-REDIS_PASS=${REDIS_PASS}
-REDIS_PREFIX=krist:
-
-# Web Server Configuration
-WEB_LISTEN=8080
-PUBLIC_URL=https://${DOMAIN}
-PUBLIC_WS_URL=https://${WS_DOMAIN}
-TRUST_PROXY_COUNT=1
-
-# Environment
-NODE_ENV=production
-USE_PROMETHEUS=true
-PROMETHEUS_PASSWORD=${PROMETHEUS_PASS}
-
-# Database Pool Settings
-DB_POOL_MIN=5
-DB_POOL_MAX=20
-DB_POOL_IDLE_MS=300000
-DB_POOL_ACQUIRE_MS=30000
-DB_POOL_EVICT_MS=10000
-EOF
-
-chown ${KRIST_USER}:${KRIST_USER} ${KRIST_DIR}/.env
-chmod 600 ${KRIST_DIR}/.env
-check_status "Environment configuration"
-
-# Create systemd service
-echo -e "${YELLOW}Creating systemd service...${NC}"
-cat > /etc/systemd/system/krist.service <<EOF
-[Unit]
-Description=Krist Server
-After=network.target mariadb.service redis-server.service
-Requires=mariadb.service redis-server.service
-
-[Service]
-Type=simple
-User=${KRIST_USER}
-WorkingDirectory=${KRIST_DIR}
-ExecStart=/usr/bin/node ${KRIST_DIR}/dist/src/index.js
-Restart=always
-RestartSec=10
-StandardOutput=journal
-StandardError=journal
-SyslogIdentifier=krist
-
-# Security
-NoNewPrivileges=true
-PrivateTmp=true
-ProtectSystem=strict
-ProtectHome=true
-ReadWritePaths=${KRIST_DIR}
-
-# Environment
-Environment="NODE_ENV=production"
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-systemctl daemon-reload
-check_status "Systemd service creation"
-
-# Create Let's Encrypt webroot directory
+# Create directory for Let's Encrypt
 echo -e "${YELLOW}Creating Let's Encrypt directory...${NC}"
-mkdir -p ${LETS_ENCRYPT_DIR}
+mkdir -p /var/www/letsencrypt
 check_status "Let's Encrypt directory creation"
 
 # Configure Nginx - Step 1: HTTP only for SSL certificates
 echo -e "${YELLOW}Configuring Nginx for SSL certificate generation...${NC}"
 
-# Remove default site if exists
+# Remove default site
 rm -f /etc/nginx/sites-enabled/default
 
-# Main domain - HTTP only
+# Create HTTP configurations
 cat > /etc/nginx/sites-available/${DOMAIN} <<EOF
 server {
     listen 80;
     server_name ${DOMAIN};
 
-    # Let's Encrypt challenge location
     location /.well-known/acme-challenge/ {
-        root ${LETS_ENCRYPT_DIR};
-        try_files \$uri =404;
+        root /var/www/letsencrypt;
     }
 
-    # Temporary response while setting up
     location / {
         return 200 'Krist server is being configured...';
         add_header Content-Type text/plain;
@@ -351,19 +217,15 @@ server {
 }
 EOF
 
-# WebSocket domain - HTTP only
 cat > /etc/nginx/sites-available/${WS_DOMAIN} <<EOF
 server {
     listen 80;
     server_name ${WS_DOMAIN};
 
-    # Let's Encrypt challenge location
     location /.well-known/acme-challenge/ {
-        root ${LETS_ENCRYPT_DIR};
-        try_files \$uri =404;
+        root /var/www/letsencrypt;
     }
 
-    # API response
     location / {
         return 200 '{"ok":true,"message":"SSL certificate pending..."}';
         add_header Content-Type application/json;
@@ -383,14 +245,11 @@ systemctl enable nginx
 systemctl restart nginx
 check_status "Nginx startup"
 
-# Wait for Nginx to be ready
-sleep 2
-
 # Get SSL certificates
-echo -e "${YELLOW}Obtaining SSL certificates from Let's Encrypt...${NC}"
+echo -e "${YELLOW}Obtaining SSL certificates...${NC}"
 certbot certonly \
     --webroot \
-    -w ${LETS_ENCRYPT_DIR} \
+    -w /var/www/letsencrypt \
     -d ${DOMAIN} \
     -d ${WS_DOMAIN} \
     --non-interactive \
@@ -421,8 +280,6 @@ server {
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_ciphers HIGH:!aNULL:!MD5;
     ssl_prefer_server_ciphers off;
-    ssl_session_cache shared:SSL:10m;
-    ssl_session_timeout 10m;
 
     # Security headers
     add_header X-Frame-Options "SAMEORIGIN" always;
@@ -434,43 +291,10 @@ server {
     access_log /var/log/nginx/bckn.dev.access.log;
     error_log /var/log/nginx/bckn.dev.error.log;
 
-    # Root directory
-    root /home/krist/krist-server/static;
-
-    # Static files with caching
-    location ~ ^/(style\.css|favicon\.ico|logo2\.svg|down\.html|.*\.(png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot))$ {
-        try_files $uri =404;
-        expires 7d;
-        add_header Cache-Control "public, immutable";
-    }
-
-    # API Documentation
-    location /docs {
-        alias /home/krist/krist-server/static/docs;
-        try_files $uri $uri/ /docs/index.html;
-    }
-
-    # Error page
-    error_page 502 503 504 /down.html;
-    location = /down.html {
-        internal;
-    }
-
-    # Prometheus metrics (protected)
-    location /prometheus {
-        proxy_pass http://127.0.0.1:8080;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        auth_basic "Prometheus Metrics";
-        auth_basic_user_file /etc/nginx/.htpasswd-prometheus;
-    }
-
-    # Main application proxy
+    # Proxy to Krist Docker container
     location / {
         proxy_pass http://127.0.0.1:8080;
         proxy_http_version 1.1;
-        
-        # Headers
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
         proxy_set_header Host $host;
@@ -478,11 +302,6 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_cache_bypass $http_upgrade;
-        
-        # Timeouts
-        proxy_connect_timeout 60s;
-        proxy_send_timeout 60s;
-        proxy_read_timeout 60s;
         
         # CORS headers
         add_header 'Access-Control-Allow-Origin' '*' always;
@@ -502,7 +321,7 @@ server {
         }
     }
 
-    # Compression
+    # Gzip
     gzip on;
     gzip_vary on;
     gzip_min_length 1024;
@@ -529,66 +348,89 @@ server {
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_ciphers HIGH:!aNULL:!MD5;
     ssl_prefer_server_ciphers off;
-    ssl_session_cache shared:SSL:10m;
-    ssl_session_timeout 10m;
-
-    # Security headers
-    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
 
     # Logging
     access_log /var/log/nginx/ws.bckn.dev.access.log;
     error_log /var/log/nginx/ws.bckn.dev.error.log;
 
-    # Error page
-    error_page 502 503 504 /down.html;
-    location = /down.html {
-        root /home/krist/krist-server/static;
-        internal;
-    }
-
-    # WebSocket endpoint
+    # WebSocket proxy
     location /ws/gateway {
         proxy_pass http://127.0.0.1:8080;
         proxy_http_version 1.1;
-        
-        # WebSocket headers
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-        
-        # WebSocket specific settings
         proxy_read_timeout 86400;
-        proxy_send_timeout 86400;
         proxy_buffering off;
         
         # CORS
         add_header 'Access-Control-Allow-Origin' '*' always;
-        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
-        add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization' always;
     }
 
-    # Root endpoint
     location / {
-        default_type application/json;
-        return 200 '{"ok":true,"ws_url":"wss://ws.bckn.dev/ws/gateway","motd":"Welcome to Krist!"}';
+        return 200 '{"ok":true,"ws_url":"wss://ws.bckn.dev/ws/gateway"}';
+        add_header Content-Type application/json;
         add_header 'Access-Control-Allow-Origin' '*' always;
     }
 }
 EOF
 
-# Create htpasswd for Prometheus
-echo -e "${YELLOW}Creating Prometheus authentication...${NC}"
-echo -n "prometheus:$(openssl passwd -apr1 ${PROMETHEUS_PASS})" > /etc/nginx/.htpasswd-prometheus
-check_status "Prometheus authentication setup"
-
-# Test and reload Nginx
+# Reload Nginx
 nginx -t
-check_status "Nginx HTTPS configuration test"
 systemctl reload nginx
-check_status "Nginx reload with HTTPS"
+check_status "Nginx HTTPS configuration"
+
+# Create Docker Compose file
+echo -e "${YELLOW}Creating Docker Compose configuration...${NC}"
+mkdir -p /opt/krist
+cat > /opt/krist/docker-compose.yml <<EOF
+version: "3.9"
+services:
+  krist:
+    image: "ghcr.io/tmpim/krist:latest"
+    container_name: krist
+    environment:
+      - DB_HOST=${DOCKER_GATEWAY}
+      - DB_USER=krist
+      - DB_PASS=${DB_KRIST_PASS}
+      - DB_NAME=krist
+      - REDIS_HOST=${DOCKER_GATEWAY}
+      - REDIS_PASS=${REDIS_PASS}
+      - PUBLIC_URL=${DOMAIN}
+      - PUBLIC_WS_URL=${WS_DOMAIN}
+      - NODE_ENV=production
+      - USE_PROMETHEUS=true
+      - PROMETHEUS_PASSWORD=${PROMETHEUS_PASS}
+      - TRUST_PROXY_COUNT=1
+    ports:
+      - "127.0.0.1:8080:8080"
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+EOF
+
+# Pull and start Krist
+echo -e "${YELLOW}Starting Krist with Docker...${NC}"
+cd /opt/krist
+docker compose pull
+docker compose up -d
+check_status "Krist Docker startup"
+
+# Wait for Krist to start
+echo -e "${YELLOW}Waiting for Krist to initialize...${NC}"
+for i in {1..30}; do
+    if curl -s http://localhost:8080 >/dev/null 2>&1; then
+        echo -e "${GREEN}Krist is responding${NC}"
+        break
+    fi
+    sleep 1
+done
 
 # Configure UFW firewall
 echo -e "${YELLOW}Configuring firewall...${NC}"
@@ -607,55 +449,28 @@ systemctl enable fail2ban >/dev/null 2>&1
 systemctl start fail2ban >/dev/null 2>&1
 check_status "Fail2ban configuration"
 
-# Generate API documentation
-echo -e "${YELLOW}Generating API documentation...${NC}"
-cd ${KRIST_DIR}
-sudo -u ${KRIST_USER} pnpm run docs || echo -e "${YELLOW}API docs generation skipped (optional)${NC}"
-
-# Start Krist service
-echo -e "${YELLOW}Starting Krist service...${NC}"
-systemctl enable krist
-systemctl start krist
-check_status "Krist service startup"
-
-# Wait for Krist to start
-echo -e "${YELLOW}Waiting for Krist to initialize...${NC}"
-for i in {1..30}; do
-    if curl -s http://localhost:8080 >/dev/null 2>&1; then
-        echo -e "${GREEN}Krist is responding${NC}"
-        break
-    fi
-    sleep 1
-done
-
 # Create backup script
 echo -e "${YELLOW}Creating backup script...${NC}"
-cat > /home/${KRIST_USER}/backup-krist.sh <<'BACKUP'
+cat > /opt/krist/backup.sh <<EOF
 #!/bin/bash
-BACKUP_DIR="/home/krist/backups"
-DATE=$(date +%Y%m%d_%H%M%S)
-mkdir -p $BACKUP_DIR
+BACKUP_DIR="/opt/krist/backups"
+DATE=\$(date +%Y%m%d_%H%M%S)
+mkdir -p \$BACKUP_DIR
 
 # Backup database
-DB_PASS=$(grep DB_PASS /home/krist/krist-server/.env | cut -d= -f2)
-mysqldump -u krist -p$DB_PASS krist | gzip > $BACKUP_DIR/krist_db_$DATE.sql.gz
+mysqldump -u krist -p${DB_KRIST_PASS} krist | gzip > \$BACKUP_DIR/krist_db_\$DATE.sql.gz
 
 # Keep only last 7 days
-find $BACKUP_DIR -name "krist_db_*.sql.gz" -mtime +7 -delete
-BACKUP
+find \$BACKUP_DIR -name "krist_db_*.sql.gz" -mtime +7 -delete
+EOF
+chmod +x /opt/krist/backup.sh
 
-chmod +x /home/${KRIST_USER}/backup-krist.sh
-chown ${KRIST_USER}:${KRIST_USER} /home/${KRIST_USER}/backup-krist.sh
-
-# Setup daily backup cron
-echo -e "${YELLOW}Setting up automatic backups...${NC}"
-(crontab -u ${KRIST_USER} -l 2>/dev/null || true; echo "0 3 * * * /home/krist/backup-krist.sh") | crontab -u ${KRIST_USER} -
-check_status "Backup configuration"
-
-# Setup auto-renewal for SSL certificates
-echo -e "${YELLOW}Setting up SSL auto-renewal...${NC}"
+# Setup cron jobs
+echo -e "${YELLOW}Setting up automatic tasks...${NC}"
+(crontab -l 2>/dev/null || true; echo "0 3 * * * /opt/krist/backup.sh") | crontab -
 (crontab -l 2>/dev/null || true; echo "0 0 * * 0 certbot renew --quiet --post-hook 'systemctl reload nginx'") | crontab -
-check_status "SSL auto-renewal"
+(crontab -l 2>/dev/null || true; echo "0 4 * * * docker system prune -af --volumes") | crontab -
+check_status "Cron jobs setup"
 
 # Save credentials
 echo -e "${YELLOW}Saving credentials...${NC}"
@@ -664,14 +479,14 @@ cat > /root/krist-credentials.txt <<EOF
 Generated on: $(date)
 
 Database:
-  Host: localhost
+  Host: ${DOCKER_GATEWAY} (from Docker container)
   Database: krist
   User: krist
   Password: ${DB_KRIST_PASS}
   Root Password: ${DB_ROOT_PASS}
 
 Redis:
-  Host: localhost
+  Host: ${DOCKER_GATEWAY} (from Docker container)
   Port: 6379
   Password: ${REDIS_PASS}
 
@@ -685,23 +500,63 @@ URLs:
   WebSocket: https://${WS_DOMAIN}/ws/gateway
   API Docs: https://${DOMAIN}/docs
 
-Commands:
-  View logs: journalctl -u krist -f
-  Restart: systemctl restart krist
-  Status: systemctl status krist
-  Edit config: nano ${KRIST_DIR}/.env
-  Backup now: /home/krist/backup-krist.sh
+Docker Commands:
+  View logs: docker logs -f krist
+  Restart: docker restart krist
+  Stop: docker stop krist
+  Start: docker start krist
+  Update: cd /opt/krist && docker compose pull && docker compose up -d
+
+System Commands:
+  Edit compose: nano /opt/krist/docker-compose.yml
+  Backup now: /opt/krist/backup.sh
+  View all logs: journalctl -f
 EOF
 chmod 600 /root/krist-credentials.txt
 
-# Final status check
+# Create convenience script
+cat > /usr/local/bin/krist <<'EOF'
+#!/bin/bash
+case "$1" in
+    logs)
+        docker logs -f krist
+        ;;
+    restart)
+        docker restart krist
+        ;;
+    stop)
+        docker stop krist
+        ;;
+    start)
+        docker start krist
+        ;;
+    status)
+        docker ps | grep krist
+        ;;
+    update)
+        cd /opt/krist
+        docker compose pull
+        docker compose up -d
+        ;;
+    *)
+        echo "Usage: krist {logs|restart|stop|start|status|update}"
+        exit 1
+        ;;
+esac
+EOF
+chmod +x /usr/local/bin/krist
+
+# Final checks
 echo ""
 echo -e "${GREEN}=== Setup Complete! ===${NC}"
 echo ""
-echo -e "${YELLOW}Checking service status...${NC}"
-systemctl status krist --no-pager | head -n 5 || true
-echo ""
-echo -e "${YELLOW}Testing endpoints...${NC}"
+echo -e "${YELLOW}Checking services...${NC}"
+echo -n "Docker: "
+if docker ps | grep -q krist; then
+    echo -e "${GREEN}✓ Krist container running${NC}"
+else
+    echo -e "${RED}✗ Krist container not running${NC}"
+fi
 echo -n "Main site: "
 if curl -s -o /dev/null -w "%{http_code}" https://${DOMAIN} | grep -q "200\|301\|302"; then
     echo -e "${GREEN}✓ Working${NC}"
@@ -718,8 +573,9 @@ echo ""
 echo -e "${RED}IMPORTANT: Credentials saved to /root/krist-credentials.txt${NC}"
 echo -e "${GREEN}Your Krist server is now running at https://${DOMAIN}${NC}"
 echo ""
-echo -e "${YELLOW}Next steps:${NC}"
-echo "1. Check the logs: journalctl -u krist -f"
-echo "2. Visit https://${DOMAIN} in your browser"
-echo "3. Save the credentials from /root/krist-credentials.txt"
+echo -e "${YELLOW}Quick commands:${NC}"
+echo "  krist logs     - View Krist logs"
+echo "  krist restart  - Restart Krist"
+echo "  krist status   - Check status"
+echo "  krist update   - Update to latest version"
 echo ""
