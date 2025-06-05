@@ -158,12 +158,13 @@ services:
   krist:
     image: "bckn:latest"
     container_name: krist
+    network_mode: "host"
     environment:
-      - DB_HOST=host.docker.internal
+      - DB_HOST=localhost
       - DB_USER=krist
       - DB_PASS=${DB_KRIST_PASS}
       - DB_NAME=krist
-      - REDIS_HOST=host.docker.internal
+      - REDIS_HOST=localhost
       - REDIS_PASS=${REDIS_PASS}
       - PUBLIC_URL=${DOMAIN}
       - PUBLIC_WS_URL=${WS_DOMAIN}
@@ -171,10 +172,6 @@ services:
       - USE_PROMETHEUS=true
       - PROMETHEUS_PASSWORD=${PROMETHEUS_PASS}
       - TRUST_PROXY_COUNT=1
-    ports:
-      - "127.0.0.1:8080:8080"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     restart: unless-stopped
     logging:
       driver: "json-file"
@@ -360,6 +357,32 @@ sleep 10
 echo -e "${YELLOW}Enabling mining...${NC}"
 redis-cli -a "${REDIS_PASS}" SET krist:mining-enabled "true"
 redis-cli -a "${REDIS_PASS}" SET krist:transactions-enabled "true"
+
+# Create genesis block
+echo -e "${YELLOW}Creating genesis block...${NC}"
+mysql -u krist -p"${DB_KRIST_PASS}" krist <<EOF
+INSERT INTO blocks (
+    id,
+    address,
+    value,
+    hash,
+    nonce,
+    difficulty,
+    time
+) VALUES (
+    1,
+    'k00000000a',
+    50,
+    '0000000000000000000000000000000000000000000000000000000000000000',
+    '',
+    100000,
+    NOW()
+) ON DUPLICATE KEY UPDATE id=id;
+EOF
+
+# Restart Krist to recognize genesis block
+docker restart krist
+sleep 5
 
 # Create update script
 cat > /opt/krist/update.sh <<'EOF'
