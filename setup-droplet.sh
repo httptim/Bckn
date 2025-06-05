@@ -239,11 +239,97 @@ SyslogIdentifier=krist
 WantedBy=multi-user.target
 EOF
 
-# Configure Nginx
-echo -e "${YELLOW}Configuring Nginx...${NC}"
+# Configure Nginx - Step 1: HTTP only for SSL cert generation
+echo -e "${YELLOW}Configuring Nginx (HTTP only for SSL certificates)...${NC}"
 
-# Main domain configuration
-cat > /etc/nginx/sites-available/${DOMAIN} <<'NGINX_CONFIG'
+# Main domain configuration (HTTP only)
+cat > /etc/nginx/sites-available/${DOMAIN} <<'NGINX_HTTP'
+server {
+    listen 80;
+    server_name bckn.dev;
+
+    # Root directory for static files (for certbot verification)
+    root /home/krist/krist-server/static;
+
+    # Proxy to Krist
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+NGINX_HTTP
+
+# WebSocket domain configuration (HTTP only)
+cat > /etc/nginx/sites-available/${WS_DOMAIN} <<'WS_HTTP'
+server {
+    listen 80;
+    server_name ws.bckn.dev;
+
+    # Root directory for static files (for certbot verification)
+    root /home/krist/krist-server/static;
+
+    # WebSocket gateway
+    location /ws/gateway {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    # Root endpoint
+    location / {
+        return 200 '{"ok":true,"ws_url":"wss://ws.bckn.dev/ws/gateway"}';
+        add_header Content-Type application/json;
+    }
+}
+WS_HTTP
+
+# Enable sites
+ln -sf /etc/nginx/sites-available/${DOMAIN} /etc/nginx/sites-enabled/
+ln -sf /etc/nginx/sites-available/${WS_DOMAIN} /etc/nginx/sites-enabled/
+
+# Remove default site
+rm -f /etc/nginx/sites-enabled/default
+
+# Test Nginx configuration
+nginx -t
+
+# Configure UFW firewall
+echo -e "${YELLOW}Configuring firewall...${NC}"
+ufw --force reset
+ufw default deny incoming
+ufw default allow outgoing
+ufw allow 22/tcp
+ufw allow 80/tcp
+ufw allow 443/tcp
+echo "y" | ufw enable
+
+# Configure fail2ban
+echo -e "${YELLOW}Configuring fail2ban...${NC}"
+systemctl enable fail2ban
+systemctl start fail2ban
+
+# Start services
+echo -e "${YELLOW}Starting services...${NC}"
+systemctl daemon-reload
+systemctl enable nginx
+systemctl restart nginx
+
+# Get SSL certificates
+echo -e "${YELLOW}Obtaining SSL certificates...${NC}"
+certbot certonly --webroot -w /home/krist/krist-server/static -d ${DOMAIN} -d ${WS_DOMAIN} --non-interactive --agree-tos --email admin@${DOMAIN}
+
+# Configure Nginx - Step 2: Full HTTPS configuration
+echo -e "${YELLOW}Configuring Nginx with HTTPS...${NC}"
+
+# Main domain configuration (Full HTTPS)
+cat > /etc/nginx/sites-available/${DOMAIN} <<'NGINX_HTTPS'
 server {
     listen 80;
     server_name bckn.dev;
@@ -255,10 +341,12 @@ server {
     http2 on;
     server_name bckn.dev;
 
-    # SSL configuration will be added by certbot
-    # Temporary self-signed cert until certbot runs
-    ssl_certificate /etc/ssl/certs/ssl-cert-snakeoil.pem;
-    ssl_certificate_key /etc/ssl/private/ssl-cert-snakeoil.key;
+    # SSL configuration
+    ssl_certificate /etc/letsencrypt/live/bckn.dev/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/bckn.dev/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
     
     # Logging
     access_log /var/log/nginx/bckn.dev.access.log;
@@ -333,10 +421,10 @@ server {
     gzip_min_length 1024;
     gzip_types text/plain text/css text/xml text/javascript application/javascript application/json application/xml+rss;
 }
-NGINX_CONFIG
+NGINX_HTTPS
 
-# WebSocket domain configuration
-cat > /etc/nginx/sites-available/${WS_DOMAIN} <<'WS_CONFIG'
+# WebSocket domain configuration (Full HTTPS)
+cat > /etc/nginx/sites-available/${WS_DOMAIN} <<'WS_HTTPS'
 server {
     listen 80;
     server_name ws.bckn.dev;
@@ -348,10 +436,12 @@ server {
     http2 on;
     server_name ws.bckn.dev;
 
-    # SSL configuration will be added by certbot
-    # Temporary self-signed cert until certbot runs
-    ssl_certificate /etc/ssl/certs/ssl-cert-snakeoil.pem;
-    ssl_certificate_key /etc/ssl/private/ssl-cert-snakeoil.key;
+    # SSL configuration
+    ssl_certificate /etc/letsencrypt/live/bckn.dev/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/bckn.dev/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
     
     # Logging
     access_log /var/log/nginx/ws.bckn.dev.access.log;
@@ -392,42 +482,10 @@ server {
         add_header 'Access-Control-Allow-Origin' '*' always;
     }
 }
-WS_CONFIG
+WS_HTTPS
 
-# Enable sites
-ln -sf /etc/nginx/sites-available/${DOMAIN} /etc/nginx/sites-enabled/
-ln -sf /etc/nginx/sites-available/${WS_DOMAIN} /etc/nginx/sites-enabled/
-
-# Remove default site
-rm -f /etc/nginx/sites-enabled/default
-
-# Test Nginx configuration
-nginx -t
-
-# Configure UFW firewall
-echo -e "${YELLOW}Configuring firewall...${NC}"
-ufw --force reset
-ufw default deny incoming
-ufw default allow outgoing
-ufw allow 22/tcp
-ufw allow 80/tcp
-ufw allow 443/tcp
-echo "y" | ufw enable
-
-# Configure fail2ban
-echo -e "${YELLOW}Configuring fail2ban...${NC}"
-systemctl enable fail2ban
-systemctl start fail2ban
-
-# Start services
-echo -e "${YELLOW}Starting services...${NC}"
-systemctl daemon-reload
-systemctl enable nginx
-systemctl restart nginx
-
-# Get SSL certificates
-echo -e "${YELLOW}Obtaining SSL certificates...${NC}"
-certbot --nginx -d ${DOMAIN} -d ${WS_DOMAIN} --non-interactive --agree-tos --email admin@${DOMAIN} --redirect
+# Reload Nginx with new configuration
+nginx -t && systemctl reload nginx
 
 # Generate API documentation
 echo -e "${YELLOW}Generating API documentation...${NC}"
