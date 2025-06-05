@@ -72,16 +72,35 @@ apt-get install -y mariadb-server mariadb-client
 
 # Secure MariaDB installation
 echo -e "${YELLOW}Securing MariaDB...${NC}"
-mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '${DB_ROOT_PASS}'"
-mysql -e "DELETE FROM mysql.global_priv WHERE User=''"
-mysql -e "DELETE FROM mysql.global_priv WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1')"
-mysql -e "DROP DATABASE IF EXISTS test"
-mysql -e "DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%'"
-mysql -e "FLUSH PRIVILEGES"
+# First try to connect without password (default on Ubuntu/Debian with unix_socket auth)
+if mysql -u root -e "SELECT 1" &>/dev/null; then
+    echo "Connected to MariaDB without password, setting root password..."
+    mysql -u root <<EOF
+ALTER USER 'root'@'localhost' IDENTIFIED BY '${DB_ROOT_PASS}';
+DELETE FROM mysql.global_priv WHERE User='';
+DELETE FROM mysql.global_priv WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
+DROP DATABASE IF EXISTS test;
+DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';
+FLUSH PRIVILEGES;
+EOF
+    MYSQL_AUTH="-u root -p${DB_ROOT_PASS}"
+else
+    echo -e "${YELLOW}MariaDB root already has a password or uses socket authentication.${NC}"
+    echo -e "${YELLOW}Using sudo to access MariaDB...${NC}"
+    sudo mysql <<EOF
+ALTER USER 'root'@'localhost' IDENTIFIED BY '${DB_ROOT_PASS}';
+DELETE FROM mysql.global_priv WHERE User='';
+DELETE FROM mysql.global_priv WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
+DROP DATABASE IF EXISTS test;
+DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';
+FLUSH PRIVILEGES;
+EOF
+    MYSQL_AUTH="-u root -p${DB_ROOT_PASS}"
+fi
 
 # Create Krist database and user
 echo -e "${YELLOW}Creating Krist database and user...${NC}"
-mysql -u root -p"${DB_ROOT_PASS}" <<EOF
+mysql ${MYSQL_AUTH} <<EOF
 CREATE DATABASE IF NOT EXISTS krist;
 CREATE USER IF NOT EXISTS 'krist'@'localhost' IDENTIFIED BY '${DB_KRIST_PASS}';
 GRANT ALL PRIVILEGES ON krist.* TO 'krist'@'localhost';
