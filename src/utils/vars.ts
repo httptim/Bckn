@@ -95,4 +95,4 @@ export const MAX_WORK = 100000;
 export const WORK_FACTOR = 0.025;
 export const SECONDS_PER_BLOCK = 300;
 
-export const LAST_BLOCK = "2022-12-31";
+export const LAST_BLOCK = "2099-12-31"; // Extended for testing
