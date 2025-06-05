@@ -213,7 +213,9 @@ def generate_address():
     private_key = secrets.token_urlsafe(32)
     
     response = requests.post(f"{BCKN_NODE}/login", 
-                           json={"privatekey": private_key})
+                           json={"privatekey": private_key},
+                           verify=False,
+                           timeout=10)
     
     if response.status_code == 200:
         data = response.json()
@@ -231,7 +233,7 @@ def get_mining_info():
     """Get current work and last block info"""
     try:
         # Get work from simple endpoint
-        work_response = requests.get(f"{BCKN_NODE}/work", verify=False)
+        work_response = requests.get(f"{BCKN_NODE}/work", verify=False, timeout=5)
         if work_response.status_code != 200:
             print(f"Work API error: {work_response.status_code}")
             return None, None
@@ -244,7 +246,7 @@ def get_mining_info():
             return None, None
         
         # Get last block
-        block_response = requests.get(f"{BCKN_NODE}/blocks/last", verify=False)
+        block_response = requests.get(f"{BCKN_NODE}/blocks/last", verify=False, timeout=5)
         block_data = block_response.json()
         
         # Handle genesis block case
@@ -267,7 +269,8 @@ def submit_block(address, nonce):
     try:
         response = requests.post(f"{BCKN_NODE}/submit",
                                json={"address": address, "nonce": str(nonce)},
-                               verify=False)
+                               verify=False,
+                               timeout=10)
         
         if response.status_code == 200:
             data = response.json()
@@ -354,7 +357,8 @@ def main():
         PRIVATE_KEY = sys.argv[1]
         response = requests.post(f"{BCKN_NODE}/login", 
                                json={"privatekey": PRIVATE_KEY},
-                               verify=False)
+                               verify=False,
+                               timeout=10)
         if response.status_code == 200:
             ADDRESS = response.json()['address']
             print(f"Mining with address: {ADDRESS}")
@@ -373,6 +377,9 @@ def main():
     
     print("\nStarting GPU mining...\n")
     
+    current_work = None
+    current_hash = None
+    
     while True:
         # Get current mining parameters
         work, last_hash = get_mining_info()
@@ -381,15 +388,24 @@ def main():
             time.sleep(5)
             continue
         
-        print(f"\nNew work: {work} | Last block: {last_hash}")
+        # Only print if work actually changed
+        if work != current_work or last_hash != current_hash:
+            print(f"\nNew work: {work} | Last block: {last_hash}")
+            current_work = work
+            current_hash = last_hash
         
         # Mine on GPU
         nonce = mine_gpu(ADDRESS, last_hash, work)
         
         if nonce:
+            print(f"\n💎 Found potential solution! Nonce: {nonce}")
+            print("   Submitting to network...")
+            
             # Submit solution
             if submit_block(ADDRESS, nonce):
                 blocks_found += 1
+            else:
+                print("   Submission failed, continuing mining...")
 
 if __name__ == "__main__":
     main()
