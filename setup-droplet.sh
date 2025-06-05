@@ -72,9 +72,9 @@ apt-get install -y mariadb-server mariadb-client
 
 # Secure MariaDB installation
 echo -e "${YELLOW}Securing MariaDB...${NC}"
-mysql -e "UPDATE mysql.user SET Password=PASSWORD('${DB_ROOT_PASS}') WHERE User='root'"
-mysql -e "DELETE FROM mysql.user WHERE User=''"
-mysql -e "DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1')"
+mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '${DB_ROOT_PASS}'"
+mysql -e "DELETE FROM mysql.global_priv WHERE User=''"
+mysql -e "DELETE FROM mysql.global_priv WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1')"
 mysql -e "DROP DATABASE IF EXISTS test"
 mysql -e "DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%'"
 mysql -e "FLUSH PRIVILEGES"
