@@ -13,6 +13,7 @@
 #include <cstring>
 #include <iomanip>
 #include <sstream>
+#include <csignal>
 #include <curl/curl.h>
 #ifdef __has_include
   #if __has_include(<jsoncpp/json/json.h>)
@@ -33,6 +34,14 @@ std::atomic<bool> found(false);
 std::atomic<uint64_t> global_counter(0);
 std::atomic<uint64_t> found_nonce(0);
 std::string found_hash;
+std::atomic<bool> should_exit(false);
+
+// Signal handler for clean shutdown
+void signal_handler(int signum) {
+    std::cout << "\n\nShutting down gracefully..." << std::endl;
+    should_exit = true;
+    found = true; // Stop mining threads
+}
 
 // Curl write callback
 size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* out) {
@@ -186,14 +195,27 @@ void stats_printer(std::chrono::steady_clock::time_point start_time) {
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
-        std::cerr << "Usage: " << argv[0] << " <private_key>" << std::endl;
+        std::cerr << "Usage: " << argv[0] << " <private_key> [--once]" << std::endl;
+        std::cerr << "  --once: Mine single block then exit (default: continuous)" << std::endl;
         return 1;
+    }
+    
+    bool continuous_mode = true;
+    if (argc > 2 && std::string(argv[2]) == "--once") {
+        continuous_mode = false;
     }
     
     // Initialize curl
     curl_global_init(CURL_GLOBAL_DEFAULT);
     
+    // Set up signal handler for clean shutdown
+    std::signal(SIGINT, signal_handler);
+    std::signal(SIGTERM, signal_handler);
+    
     std::cout << "=== Bckn CPU Miner (C++ Edition) ===" << std::endl;
+    if (continuous_mode) {
+        std::cout << "Mode: Continuous (Ctrl+C to stop)" << std::endl;
+    }
     
     // Login
     Json::Value login_data;
@@ -212,6 +234,13 @@ int main(int argc, char* argv[]) {
     
     std::string address = login_result["address"].asString();
     std::cout << "Address: " << address << std::endl;
+    
+    // Statistics tracking
+    int blocks_found = 0;
+    auto session_start = std::chrono::steady_clock::now();
+    
+    // Main mining loop
+    while (!should_exit && (continuous_mode || blocks_found == 0)) {
     
     // Get work
     std::string work_response = http_get(BCKN_NODE + "/work");
@@ -294,11 +323,29 @@ int main(int argc, char* argv[]) {
     Json::Value submit_result;
     if (reader.parse(submit_response, submit_result)) {
         if (submit_result["success"].asBool()) {
+            blocks_found++;
             std::cout << "✓ Block submitted successfully!" << std::endl;
-            std::cout << "Reward: 25 BCN" << std::endl;
+            std::cout << "Reward: 25 BCN | Total blocks: " << blocks_found << " | Total earned: " << (blocks_found * 25) << " BCN" << std::endl;
         } else {
             std::cout << "✗ Submission failed: " << submit_response << std::endl;
         }
+    }
+    
+    if (continuous_mode && !should_exit) {
+        std::cout << "\nStarting new round in 3 seconds...\n" << std::endl;
+        std::this_thread::sleep_for(std::chrono::seconds(3));
+    }
+    
+    } // end while loop
+    
+    // Show session statistics
+    if (blocks_found > 0) {
+        auto session_end = std::chrono::steady_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::seconds>(session_end - session_start).count();
+        std::cout << "\n=== Session Summary ===" << std::endl;
+        std::cout << "Total blocks found: " << blocks_found << std::endl;
+        std::cout << "Total BCN earned: " << (blocks_found * 25) << std::endl;
+        std::cout << "Session duration: " << duration << " seconds" << std::endl;
     }
     
     curl_global_cleanup();
