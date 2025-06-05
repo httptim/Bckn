@@ -323,13 +323,14 @@ def mine_gpu(address, last_hash, work):
         )
         
         # Check if found
-        found = np.int32(0)
+        found = np.zeros(1, dtype=np.int32)
         cuda.memcpy_dtoh(found, d_found)
+        found = found[0]
         
         if found:
-            result_nonce = np.uint64(0)
+            result_nonce = np.zeros(1, dtype=np.uint64)
             cuda.memcpy_dtoh(result_nonce, d_result_nonce)
-            return int(result_nonce)
+            return int(result_nonce[0])
         
         # Update counters
         nonce_start += GPU_BATCH_SIZE
