@@ -31,7 +31,7 @@ import {
 import { getBlock, getBlocks, getLastBlock, getLowestHashes } from "../krist/blocks/index.js";
 import { submitBlock, SubmitBlockResponse } from "../krist/blocks/submit.js";
 import { isMiningEnabled } from "../krist/switches.js";
-import { isValidKristAddress, validateLimitOffset } from "../utils/index.js";
+import { isValidBcknAddress, validateLimitOffset } from "../utils/index.js";
 import { NONCE_MAX_SIZE } from "../utils/vars.js";
 
 export async function ctrlGetBlocks(
@@ -81,7 +81,7 @@ export async function ctrlSubmitBlock(
   if (!await isMiningEnabled()) throw new ErrorMiningDisabled();
 
   if (!address) throw new ErrorMissingParameter("address");
-  if (!isValidKristAddress(address, true))
+  if (!isValidBcknAddress(address, true))
     throw new ErrorInvalidParameter("address");
 
   if (!rawNonce) throw new ErrorMissingParameter("nonce");

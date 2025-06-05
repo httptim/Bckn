@@ -1,8 +1,8 @@
-krist.dev {
-  root /var/www/krist.dev/static
+bckn.dev {
+  root /var/www/bckn.dev/static
 
-  log /var/log/casket/krist.dev.access.log
-  errors /var/log/casket/krist.dev.error.log {
+  log /var/log/casket/bckn.dev.access.log
+  errors /var/log/casket/bckn.dev.error.log {
     502 down.html
   }
 
@@ -15,11 +15,11 @@ krist.dev {
   gzip
 }
 
-ws.krist.dev {
-  root /var/www/krist.dev/static
+ws.bckn.dev {
+  root /var/www/bckn.dev/static
   
-  log /var/log/casket/ws.krist.dev.access.log
-  errors /var/log/casket/ws.krist.dev.error.log {
+  log /var/log/casket/ws.bckn.dev.access.log
+  errors /var/log/casket/ws.bckn.dev.error.log {
     502 down.html
   }
 

@@ -38,7 +38,7 @@ export default (): Router => {
 	 * {
 	 *     "ok": true,
 	 *     "authed": true,
-	 *     "address": "kre3w0i79j"
+	 *     "address": "b70dxcdr3n"
    * }
 	 *
 	 * @apiSuccessExample {json} Success, Auth Failed

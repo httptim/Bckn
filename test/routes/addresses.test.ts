@@ -28,21 +28,21 @@ describe("v1 routes: addresses", function() {
 
   describe("GET /?getbalance", function() {
     it("should return the balance", async function() {
-      const res = await api().get("/?getbalance=k8juvewcui");
+      const res = await api().get("/?getbalance=bv8c78oh67");
       expect(res).to.have.status(200);
       expect(res).to.be.text;
       expect(res.text).to.equal("10");
     });
 
     it("should return the balance", async function() {
-      const res = await api().get("/?getbalance=k7oax47quv");
+      const res = await api().get("/?getbalance=bu1sdlbvwh");
       expect(res).to.have.status(200);
       expect(res).to.be.text;
       expect(res.text).to.equal("0");
     });
 
     it("should return 0 for a non-existent address", async function() {
-      const res = await api().get("/?getbalance=knotfound0");
+      const res = await api().get("/?getbalance=bnotfound0");
       expect(res).to.have.status(200);
       expect(res).to.be.text;
       expect(res.text).to.equal("0");
@@ -107,7 +107,7 @@ describe("v2 routes: addresses", function() {
 
   describe("GET /addresses/:address", function() {
     it("should get an address", async function() {
-      const res = await api().get("/addresses/k8juvewcui");
+      const res = await api().get("/addresses/bv8c78oh67");
       expect(res).to.have.status(200);
       expect(res).to.be.json;
       expect(res.body).to.include({ ok: true });
@@ -117,7 +117,7 @@ describe("v2 routes: addresses", function() {
     });
 
     it("should get an address with names", async function() {
-      const res = await api().get("/addresses/k8juvewcui?fetchNames");
+      const res = await api().get("/addresses/bv8c78oh67?fetchNames");
       expect(res).to.be.json;
       expect(res.body).to.include({ ok: true });
       expect(res.body.address).to.be.an("object");
@@ -125,7 +125,7 @@ describe("v2 routes: addresses", function() {
     });
 
     it("should not contain private parts", async function() {
-      const res = await api().get("/addresses/kwsgj3x184");
+      const res = await api().get("/addresses/byouf00c9w");
       expect(res).to.have.status(200);
       expect(res).to.be.json;
       expect(res.body.address).to.be.an("object");
@@ -133,7 +133,7 @@ describe("v2 routes: addresses", function() {
     });
 
     it("should return an error for addresses that doesn't exist", async function() {
-      const res = await api().get("/addresses/knotfound0");
+      const res = await api().get("/addresses/bnotfound0");
       expect(res).to.be.json;
       expect(res.body).to.deep.include({ ok: false, error: "address_not_found" });
     });

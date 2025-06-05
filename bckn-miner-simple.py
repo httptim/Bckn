@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Krist CPU Miner - Simple & Fast
+Bckn CPU Miner - Simple & Fast
 For macOS/Apple Silicon
 """
 
@@ -14,7 +14,7 @@ from datetime import datetime
 # Suppress warnings
 os.environ['PYTHONWARNINGS'] = 'ignore'
 
-KRIST_NODE = "https://bckn.dev"
+BCKN_NODE = "https://bckn.dev"
 
 def sha256(data):
     return hashlib.sha256(data.encode()).hexdigest()
@@ -53,7 +53,7 @@ def get_api(endpoint):
     ctx.check_hostname = False
     ctx.verify_mode = ssl.CERT_NONE
     
-    with urllib.request.urlopen(KRIST_NODE + endpoint, context=ctx) as response:
+    with urllib.request.urlopen(BCKN_NODE + endpoint, context=ctx) as response:
         return json.loads(response.read())
 
 def post_api(endpoint, data):
@@ -67,7 +67,7 @@ def post_api(endpoint, data):
     ctx.verify_mode = ssl.CERT_NONE
     
     req = urllib.request.Request(
-        KRIST_NODE + endpoint,
+        BCKN_NODE + endpoint,
         data=json.dumps(data).encode('utf-8'),
         headers={'Content-Type': 'application/json'}
     )
@@ -77,7 +77,7 @@ def post_api(endpoint, data):
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python3 krist-miner-simple.py <private_key>")
+        print("Usage: python3 bckn-miner-simple.py <private_key>")
         return
         
     # Login
@@ -85,7 +85,7 @@ def main():
     login = post_api("/login", {"privatekey": private_key})
     address = login['address']
     
-    print(f"Krist Miner - {cpu_count()} threads")
+    print(f"Bckn Miner - {cpu_count()} threads")
     print(f"Address: {address}")
     
     # Get work info
@@ -139,7 +139,7 @@ def main():
                         submit = post_api("/submit", {"address": address, "nonce": str(nonce)})
                         if submit.get('success'):
                             print("✅ Block mined successfully!")
-                            print(f"Reward: {submit['block']['value']} KST")
+                            print(f"Reward: {submit['block']['value']} BCN")
                         else:
                             print("❌ Submission failed:", submit)
                     except Exception as e:

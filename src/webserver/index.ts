@@ -92,7 +92,7 @@ export async function initWebserver(): Promise<void> {
     }
   });
 
-  // Error handler - convert KristErrors to sendErrorToRes
+  // Error handler - convert BcknErrors to sendErrorToRes
   app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
     // Don't do anything if a response has already been sent
     if (res.headersSent) return next(err);

@@ -19,9 +19,9 @@
  * For more project information, see <https://github.com/tmpim/krist>.
  */
 
-import { KristError } from "./KristError.js";
+import { BcknError } from "./BcknError.js";
 
-export class ErrorInvalidWebsocketToken extends KristError {
+export class ErrorInvalidWebsocketToken extends BcknError {
   constructor() {
     super("Invalid websocket token", "invalid_websocket_token", 403);
   }

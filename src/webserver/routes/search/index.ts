@@ -42,11 +42,11 @@ export type ReqSearchQuery = LookupQuery<{
  * @apiSuccess {String} query.originalQuery The original (sanitised) query text.
  * @apiSuccess {Boolean} query.matchAddress Whether the query exactly matches the format of a Krist address.
  * @apiSuccess {Boolean} query.matchName Whether the query exactly matches the format of a Krist name (with or without
- *   the `.kst`) suffix.
+ *   the `.bacon`) suffix.
  * @apiSuccess {Boolean} query.matchBlock Currently unused.
  * @apiSuccess {Boolean} query.matchTransaction Whether the query exactly matches the format of a transaction ID (with
  *   all non-numbers removed).
- * @apiSuccess {String} query.strippedName The query with the `.kst` suffix stripped, if it was present.
+ * @apiSuccess {String} query.strippedName The query with the `.bacon` suffix stripped, if it was present.
  * @apiSuccess {Boolean} query.hasID Whether the query looks like an ID number (e.g. for transactions).
  * @apiSuccess {Number} [query.cleanID] If hasID is true, this is the query, sanitised and converted to a number.
  */

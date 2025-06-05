@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Krist (Bckn) Server Setup Script for Digital Ocean Droplet
+# Bckn (Bckn) Server Setup Script for Digital Ocean Droplet
 # Builds from YOUR fork with mining enabled
 
 set -e  # Exit on error
@@ -19,7 +19,7 @@ WS_DOMAIN="ws.bckn.dev"
 GITHUB_REPO="https://github.com/httptim/Bckn"
 LETS_ENCRYPT_DIR="/var/www/letsencrypt"
 
-echo -e "${BLUE}=== Bckn (Krist Fork) Setup Script ===${NC}"
+echo -e "${BLUE}=== Bckn (Bckn Fork) Setup Script ===${NC}"
 echo -e "${BLUE}Building from: ${GITHUB_REPO}${NC}"
 echo -e "${BLUE}Domain: ${DOMAIN}${NC}"
 echo -e "${BLUE}WebSocket Domain: ${WS_DOMAIN}${NC}"
@@ -34,7 +34,7 @@ fi
 # Generate secure passwords
 echo -e "${YELLOW}Generating secure passwords...${NC}"
 DB_ROOT_PASS=$(openssl rand -hex 32)
-DB_KRIST_PASS=$(openssl rand -hex 32)
+DB_BCKN_PASS=$(openssl rand -hex 32)
 REDIS_PASS=$(openssl rand -hex 32)
 PROMETHEUS_PASS=$(openssl rand -hex 16)
 
@@ -89,13 +89,13 @@ DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';
 FLUSH PRIVILEGES;
 EOF
 
-# Create Krist database
+# Create Bckn database
 mysql -u root -p"${DB_ROOT_PASS}" <<EOF
-CREATE DATABASE IF NOT EXISTS krist CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER IF NOT EXISTS 'krist'@'localhost' IDENTIFIED BY '${DB_KRIST_PASS}';
-CREATE USER IF NOT EXISTS 'krist'@'%' IDENTIFIED BY '${DB_KRIST_PASS}';
-GRANT ALL PRIVILEGES ON krist.* TO 'krist'@'localhost';
-GRANT ALL PRIVILEGES ON krist.* TO 'krist'@'%';
+CREATE DATABASE IF NOT EXISTS bckn CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER IF NOT EXISTS 'bckn'@'localhost' IDENTIFIED BY '${DB_BCKN_PASS}';
+CREATE USER IF NOT EXISTS 'bckn'@'%' IDENTIFIED BY '${DB_BCKN_PASS}';
+GRANT ALL PRIVILEGES ON bckn.* TO 'bckn'@'localhost';
+GRANT ALL PRIVILEGES ON bckn.* TO 'bckn'@'%';
 FLUSH PRIVILEGES;
 EOF
 
@@ -144,26 +144,26 @@ systemctl enable redis-server
 # Clone and build Bckn
 echo -e "${YELLOW}Cloning and building Bckn...${NC}"
 cd /opt
-git clone ${GITHUB_REPO} krist-source
-cd krist-source
+git clone ${GITHUB_REPO} bckn-source
+cd bckn-source
 
 # Build Docker image
 docker build -t bckn:latest .
 
 # Create docker-compose
-mkdir -p /opt/krist
-cat > /opt/krist/docker-compose.yml <<EOF
+mkdir -p /opt/bckn
+cat > /opt/bckn/docker-compose.yml <<EOF
 version: "3.9"
 services:
-  krist:
+  bckn:
     image: "bckn:latest"
-    container_name: krist
+    container_name: bckn
     network_mode: "host"
     environment:
       - DB_HOST=localhost
-      - DB_USER=krist
-      - DB_PASS=${DB_KRIST_PASS}
-      - DB_NAME=krist
+      - DB_USER=bckn
+      - DB_PASS=${DB_BCKN_PASS}
+      - DB_NAME=bckn
       - REDIS_HOST=localhost
       - REDIS_PASS=${REDIS_PASS}
       - PUBLIC_URL=${DOMAIN}
@@ -345,9 +345,9 @@ ufw allow 80/tcp >/dev/null 2>&1
 ufw allow 443/tcp >/dev/null 2>&1
 echo "y" | ufw enable >/dev/null 2>&1
 
-# Start Krist
-echo -e "${YELLOW}Starting Krist...${NC}"
-cd /opt/krist
+# Start Bckn
+echo -e "${YELLOW}Starting Bckn...${NC}"
+cd /opt/bckn
 docker compose up -d
 
 # Wait for startup
@@ -355,12 +355,12 @@ sleep 10
 
 # Enable mining in Redis
 echo -e "${YELLOW}Enabling mining...${NC}"
-redis-cli -a "${REDIS_PASS}" SET krist:mining-enabled "true"
-redis-cli -a "${REDIS_PASS}" SET krist:transactions-enabled "true"
+redis-cli -a "${REDIS_PASS}" SET bckn:mining-enabled "true"
+redis-cli -a "${REDIS_PASS}" SET bckn:transactions-enabled "true"
 
 # Create genesis block
 echo -e "${YELLOW}Creating genesis block...${NC}"
-mysql -u krist -p"${DB_KRIST_PASS}" krist <<EOF
+mysql -u bckn -p"${DB_BCKN_PASS}" bckn <<EOF
 INSERT INTO blocks (
     id,
     address,
@@ -371,7 +371,7 @@ INSERT INTO blocks (
     time
 ) VALUES (
     1,
-    'k00000000a',
+    'b00000000a',
     50,
     '0000000000000000000000000000000000000000000000000000000000000000',
     '',
@@ -380,33 +380,33 @@ INSERT INTO blocks (
 ) ON DUPLICATE KEY UPDATE id=id;
 EOF
 
-# Restart Krist to recognize genesis block
-docker restart krist
+# Restart Bckn to recognize genesis block
+docker restart bckn
 sleep 5
 
 # Create update script
-cat > /opt/krist/update.sh <<'EOF'
+cat > /opt/bckn/update.sh <<'EOF'
 #!/bin/bash
-cd /opt/krist-source
+cd /opt/bckn-source
 git pull
 docker build -t bckn:latest .
-cd /opt/krist
+cd /opt/bckn
 docker compose down
 docker compose up -d
 echo "Update complete!"
 EOF
-chmod +x /opt/krist/update.sh
+chmod +x /opt/bckn/update.sh
 
 # Save credentials
-cat > /root/krist-credentials.txt <<EOF
-=== Bckn (Krist Fork) Server Credentials ===
+cat > /root/bckn-credentials.txt <<EOF
+=== Bckn (Bckn Fork) Server Credentials ===
 Generated on: $(date)
 
 Database:
   Host: localhost
-  Database: krist
-  User: krist
-  Password: ${DB_KRIST_PASS}
+  Database: bckn
+  User: bckn
+  Password: ${DB_BCKN_PASS}
   Root Password: ${DB_ROOT_PASS}
 
 Redis:
@@ -424,12 +424,12 @@ URLs:
   WebSocket: https://${WS_DOMAIN}/ws/gateway
 
 Commands:
-  View logs: docker logs -f krist
-  Restart: docker restart krist
-  Update from GitHub: /opt/krist/update.sh
-  Check mining status: redis-cli -a ${REDIS_PASS} GET krist:mining-enabled
+  View logs: docker logs -f bckn
+  Restart: docker restart bckn
+  Update from GitHub: /opt/bckn/update.sh
+  Check mining status: redis-cli -a ${REDIS_PASS} GET bckn:mining-enabled
 EOF
-chmod 600 /root/krist-credentials.txt
+chmod 600 /root/bckn-credentials.txt
 
 # Final output
 echo ""
@@ -442,8 +442,8 @@ else
     echo -e "${YELLOW}API still starting up...${NC}"
 fi
 echo ""
-echo -e "${RED}Credentials saved to: /root/krist-credentials.txt${NC}"
+echo -e "${RED}Credentials saved to: /root/bckn-credentials.txt${NC}"
 echo -e "${GREEN}Your Bckn server is running at https://${DOMAIN}${NC}"
 echo -e "${GREEN}Mining is ENABLED!${NC}"
 echo ""
-echo "To update from your GitHub repo later: /opt/krist/update.sh"
+echo "To update from your GitHub repo later: /opt/bckn/update.sh"

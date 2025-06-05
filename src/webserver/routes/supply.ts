@@ -20,7 +20,7 @@
  */
 
 import { Router } from "express";
-import { getKristSupply } from "../../krist/supply.js";
+import { getBcknSupply } from "../../krist/supply.js";
 
 export default (): Router => {
   const router = Router();
@@ -34,9 +34,9 @@ export default (): Router => {
 	 * @apiGroup MiscellaneousGroup
 	 * @apiVersion 2.0.0
 	 *
-	 * @apiDescription Returns the amount of Krist currently in circulation.
+	 * @apiDescription Returns the amount of Bckn currently in circulation.
 	 *
-	 * @apiSuccess {Number} money_supply The amount of Krist in circulation.
+	 * @apiSuccess {Number} money_supply The amount of Bckn in circulation.
 	 *
 	 * @apiSuccessExample {json} Success
 	 * {
@@ -45,7 +45,7 @@ export default (): Router => {
    * }
 	 */
   router.get("/supply", async (req, res) => {
-    const supply = await getKristSupply();
+    const supply = await getBcknSupply();
 
     res.json({
       ok: true,
@@ -58,7 +58,7 @@ export default (): Router => {
   // ===========================================================================
   router.get("/", async (req, res, next) => {
     if (req.query.getmoneysupply !== undefined) {
-      res.send((await getKristSupply()).toString());
+      res.send((await getBcknSupply()).toString());
       return;
     }
 

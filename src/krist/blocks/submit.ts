@@ -118,7 +118,7 @@ export async function createBlock(
       MIN_WORK
     ));
 
-    console.log(chalkT`{bold [Krist]} Submitting {bold ${value} KST} block by {bold ${address}} at {cyan ${dayjs().format("HH:mm:ss DD/MM/YYYY")}} ${logDetails}`);
+    console.log(chalkT`{bold [Bckn]} Submitting {bold ${value} BCN} block by {bold ${address}} at {cyan ${dayjs().format("HH:mm:ss DD/MM/YYYY")}} ${logDetails}`);
     promBlockCounter.inc();
 
     // Create the new block

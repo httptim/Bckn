@@ -42,18 +42,18 @@ import { PaginatedQuery, ReqQuery, returnPaginatedResult } from "../utils.js";
  * @apiSuccess {String} transaction.to The recipient of this transaction. This
  *   may be `"name"` if the transaction was a name purchase, or `"a"` if it was
  *   a name's data change.
- * @apiSuccess {Number} transaction.value The amount of Krist transferred in
+ * @apiSuccess {Number} transaction.value The amount of Bacon transferred in
  *   this transaction. Can be `0`, notably if the transaction was a name's data
  *   change.
  * @apiSuccess {Date} transaction.time The time this transaction this was made,
  *   as an ISO-8601 string.
  * @apiSuccess {String} [transaction.name] The name associated with this
- *   transaction, without the `.kst` suffix, or `null`.
+ *   transaction, without the `.bcn` suffix, or `null`.
  * @apiSuccess {String} [transaction.metadata] Transaction metadata, or `null`.
  * @apiSuccess {String} [transaction.sent_metaname] The metaname (part before
  *   the `"@"`) of the recipient of this transaction, if it was sent to a name.
  * @apiSuccess {String} [transaction.sent_name] The name this transaction was
- *   sent to, without the `.kst` suffix, if it was sent to a name.
+ *   sent to, without the `.bcn` suffix, if it was sent to a name.
  * @apiSuccess {String} transaction.type The type of this transaction. May be
  *   `mined`, `transfer`, `name_purchase`, `name_a_record`, or `name_transfer`.
  *   Note that `name_a_record` refers to a name's data changing.
@@ -69,18 +69,18 @@ import { PaginatedQuery, ReqQuery, returnPaginatedResult } from "../utils.js";
  * @apiSuccess {String} transactions.to The recipient of this transaction. This
  *   may be `"name"` if the transaction was a name purchase, or `"a"` if it was
  *   a name's data change.
- * @apiSuccess {Number} transactions.value The amount of Krist transferred in
+ * @apiSuccess {Number} transactions.value The amount of Bacon transferred in
  *   this transaction. Can be `0`, notably if the transaction was a name's data
  *   change.
  * @apiSuccess {Date} transactions.time The time this transaction this was made,
  *   as an ISO-8601 string.
  * @apiSuccess {String} [transactions.name] The name associated with this
- *   transaction, without the `.kst` suffix, or `null`.
+ *   transaction, without the `.bcn` suffix, or `null`.
  * @apiSuccess {String} [transactions.metadata] Transaction metadata, or `null`.
  * @apiSuccess {String} [transactions.sent_metaname] The metaname (part before
  *   the `"@"`) of the recipient of this transaction, if it was sent to a name.
  * @apiSuccess {String} [transactions.sent_name] The name this transaction was
- *   sent to, without the `.kst` suffix, if it was sent to a name.
+ *   sent to, without the `.bcn` suffix, if it was sent to a name.
  * @apiSuccess {String} transactions.type The type of this transaction. May be
  *   `mined`, `transfer`, `name_purchase`, `name_a_record`, or `name_transfer`.
  *   Note that `name_a_record` refers to a name's data changing.
@@ -173,7 +173,7 @@ export default (): Router => {
    *         {
    *             "id": 153287,
    *             "from": null,
-   *             "to": "kre3w0i79j",
+   *             "to": "b70dxcdr3n",
    *             "value": 14,
    *             "time": "2016-02-06T19:22:41.000Z",
    *             "name": null,
@@ -184,7 +184,7 @@ export default (): Router => {
    *         },
    *         {
    *             "id": 153286,
-   *             "from": "kxxhsp1uzh",
+   *             "from": "bxxhsp1uzh",
    *             "to": "name",
    *             "value": 500,
    *             "time": "2016-02-06T14:01:19.000Z",
@@ -223,8 +223,8 @@ export default (): Router => {
    *     "ok": true,
    *     "transaction": {
    *         "id": 153282,
-   *         "from": "kh9w36ea1b",
-   *         "to": "kutlg1kzhz",
+   *         "from": "bh9w36ea1b",
+   *         "to": "butlg1kzhz",
    *         "value": 56610,
    *         "time": "2016-02-03T19:15:32.000Z",
    *         "name": null,
@@ -316,11 +316,11 @@ export default (): Router => {
     }
 
     if (req.query.pushtx !== undefined) {
-      return res.send("v1 transactions disabled. Contact Krist team");
+      return res.send("v1 transactions disabled. Contact Bacon team");
     }
 
     if (req.query.pushtx2 !== undefined) {
-      return res.send("Legacy transactions disabled. Contact Krist team");
+      return res.send("Legacy transactions disabled. Contact Bacon team");
     }
 
     next();

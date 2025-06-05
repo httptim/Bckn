@@ -112,7 +112,7 @@ async function pushTransactionInternal(
     const { logDetails } = getLogDetails(req);
 
     console.log(chalkT`{red.bold [URGENT]} Race condition attempted in `
-      + chalkT`{bold ${amount} KST} transaction `
+      + chalkT`{bold ${amount} BCN} transaction `
       + chalkT`from {bold ${senderAddress || "(null)"}} `
       + chalkT`to {bold ${recipientAddress || "(null)"}} at `
       + chalkT`{cyan ${dayjs().format("HH:mm:ss DD/MM/YYYY")}} ${logDetails}`);
@@ -120,7 +120,7 @@ async function pushTransactionInternal(
     criticalLog(
       `raceCondition-${senderAddress}-${recipientAddress}-${amount}`,
       req,
-      `Race condition attempted in **${amount} KST** `
+      `Race condition attempted in **${amount} BCN** `
       + `transaction from **${senderAddress}** to **${recipientAddress}**`,
       true
     );
@@ -203,7 +203,7 @@ export function logTransaction(
 ): void {
   const { logDetails } = getLogDetails(req);
 
-  let msg = chalkT`{bold [Transactions]} ${state} {bold ${value} KST} transaction `
+  let msg = chalkT`{bold [Transactions]} ${state} {bold ${value} BCN} transaction `
     + chalkT`from {bold ${from || "(null)"}} to {bold ${to || "(null)"}} at `
     + chalkT`{cyan ${dayjs().format("HH:mm:ss DD/MM/YYYY")}}`;
 

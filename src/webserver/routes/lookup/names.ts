@@ -59,7 +59,7 @@ export default (): Router => {
    *   "names": [
    *     {
    *       "name": "ahh11",
-   *       "owner": "khugepoopy",
+   *       "owner": "bhugepoopy",
    *       "registered": "2016-06-12T13:21:41.000Z",
    *       "updated": "2018-04-06T16:54:53.000Z",
    *       "transferred": "2018-04-06T16:54:53.000Z",
@@ -68,7 +68,7 @@ export default (): Router => {
    *     },
    *     {
    *       "name": "antiblock",
-   *       "owner": "kreichdyes",
+   *       "owner": "breichdyes",
    *       "registered": "2020-01-25T12:18:14.000Z",
    *       "updated": "2020-01-25T12:18:14.000Z",
    *       "transferred": null,
@@ -131,18 +131,18 @@ export default (): Router => {
    *   "transactions": [
    *     {
    *       "id": 892595,
-   *       "from": "khugepoopy",
-   *       "to": "kqxhx5yn9v",
+   *       "from": "bhugepoopy",
+   *       "to": "bqxhx5yn9v",
    *       "value": 7000,
    *       "time": "2018-12-29T13:02:05.000Z",
    *       "name": null,
-   *       "metadata": "lignum@switchcraft.kst",
+   *       "metadata": "lignum@switchcraft.bacon",
    *       "type": "transfer"
    *     },
    *     {
    *       "id": 1454706,
-   *       "from": "k5cfswitch",
-   *       "to": "khugepoopy",
+   *       "from": "b5cfswitch",
+   *       "to": "bhugepoopy",
    *       "value": 5050,
    *       "time": "2020-01-20T00:01:47.000Z",
    *       "name": null,
@@ -204,18 +204,18 @@ export default (): Router => {
    *   "transactions": [
    *     {
    *       "id": 892595,
-   *       "from": "khugepoopy",
-   *       "to": "kqxhx5yn9v",
+   *       "from": "bhugepoopy",
+   *       "to": "bqxhx5yn9v",
    *       "value": 7000,
    *       "time": "2018-12-29T13:02:05.000Z",
    *       "name": null,
-   *       "metadata": "lignum@switchcraft.kst",
+   *       "metadata": "lignum@switchcraft.bacon",
    *       "type": "transfer"
    *     },
    *     {
    *       "id": 1454706,
-   *       "from": "k5cfswitch",
-   *       "to": "khugepoopy",
+   *       "from": "b5cfswitch",
+   *       "to": "bhugepoopy",
    *       "value": 5050,
    *       "time": "2020-01-20T00:01:47.000Z",
    *       "name": null,

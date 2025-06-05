@@ -19,9 +19,9 @@
  * For more project information, see <https://github.com/tmpim/krist>.
  */
 
-import { KristError } from "./KristError.js";
+import { BcknError } from "./BcknError.js";
 
-export class ErrorInvalidParameter extends KristError<{
+export class ErrorInvalidParameter extends BcknError<{
   parameter: string;
   message?: string;
 }> {

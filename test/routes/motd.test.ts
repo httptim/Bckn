@@ -33,7 +33,7 @@ describe("v2 routes: motd", function() {
 
     expect(res.body.ok).to.be.true;
 
-    expect(res.body.motd).to.equal("Welcome to Krist!");
+    expect(res.body.motd).to.equal("Welcome to Bacon!");
     expect(res.body.set).to.be.ok;
     expect(res.body.motd_set).to.be.ok;
 
@@ -47,7 +47,7 @@ describe("v2 routes: motd", function() {
     expect(res.body.last_block.height).to.equal(1);
 
     expect(res.body.package).to.be.an("object");
-    expect(res.body.package).to.deep.include({ name: "krist", author: "Lemmmy", licence: "GPL-3.0" });
+    expect(res.body.package).to.deep.include({ name: "bckn", author: "Lemmmy", licence: "GPL-3.0" });
     expect(res.body.package.version).to.be.ok;
     expect(res.body.package.repository).to.be.ok;
 
@@ -60,8 +60,8 @@ describe("v2 routes: motd", function() {
 
     expect(res.body.currency).to.be.an("object");
     expect(res.body.currency).to.deep.equal({
-      address_prefix: "k", name_suffix: "kst",
-      currency_name: "Krist", currency_symbol: "KST"
+      address_prefix: "b", name_suffix: "bacon",
+      currency_name: "Bacon", currency_symbol: "BCN"
     });
 
     expect(res.body.notice).to.equal("Krist was originally created by 3d6 and Lemmmy. It is now owned and operated by tmpim, and licensed under GPL-3.0.");

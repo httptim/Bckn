@@ -19,9 +19,9 @@
  * For more project information, see <https://github.com/tmpim/krist>.
  */
 
-import { KristError } from "./KristError.js";
+import { BcknError } from "./BcknError.js";
 
-export class ErrorNameNotFound extends KristError<{ name?: string | null }> {
+export class ErrorNameNotFound extends BcknError<{ name?: string | null }> {
   constructor(name: string) {
     super(
       `Name ${name ?? "[null]"} not found`,
@@ -32,7 +32,7 @@ export class ErrorNameNotFound extends KristError<{ name?: string | null }> {
   }
 }
 
-export class ErrorNameTaken extends KristError<{ name?: string | null }> {
+export class ErrorNameTaken extends BcknError<{ name?: string | null }> {
   constructor(name: string) {
     super(
       `Name ${name ?? "[null]"} is already taken`,
@@ -43,7 +43,7 @@ export class ErrorNameTaken extends KristError<{ name?: string | null }> {
   }
 }
 
-export class ErrorNotNameOwner extends KristError<{ name?: string | null }> {
+export class ErrorNotNameOwner extends BcknError<{ name?: string | null }> {
   constructor(name: string) {
     super(
       `You are not the owner of name ${name ?? "[null]"}`,

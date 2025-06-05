@@ -21,7 +21,7 @@
 
 import { Request } from "express";
 import WebSocket from "ws";
-import { ErrorInvalidParameter, ErrorMissingParameter, errorToJson, KristError } from "../errors/index.js";
+import { ErrorInvalidParameter, ErrorMissingParameter, errorToJson, BcknError } from "../errors/index.js";
 import { getDetailedMotd } from "../krist/motd.js";
 import { promWebsocketKeepalivesTotal, promWebsocketMessagesTotal } from "./prometheus.js";
 import { handleWebSocketMessage } from "./routes/index.js";
@@ -69,21 +69,21 @@ export class WrappedWebSocket {
       let id: string | number | undefined | null = undefined;
 
       // Outer error handler - if an error occurs, respond with an error
-      // message, converting a KristError where possible
+      // message, converting a BcknError where possible
       try {
         // =====================================================================
         // VALIDATION
         // =====================================================================
         // Validate message length
         const strData = rawData.toString("utf-8");
-        if (strData.length > 512) throw new KristError("message_too_long");
+        if (strData.length > 512) throw new BcknError("message_too_long");
 
         // Validate message is JSON
         let msg: IncomingWebSocketMessage;
         try {
           msg = JSON.parse(strData);
         } catch (parseErr) {
-          throw new KristError("syntax_error");
+          throw new BcknError("syntax_error");
         }
 
         // Validate message contains an ID to reply to
@@ -106,7 +106,7 @@ export class WrappedWebSocket {
         this.sendResponse(id, type, res);
       } catch (err) {
         // Increment invalid message counter if an error occurs
-        if (err instanceof KristError && (
+        if (err instanceof BcknError && (
           err.errorString === "message_too_long"
           || err.errorString === "syntax_error"
           || err.errorString === "missing_parameter"

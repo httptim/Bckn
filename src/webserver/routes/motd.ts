@@ -26,7 +26,7 @@ export default (): Router => {
   const router = Router();
 
   /**
-	 * @api {get} /motd Get information about the Krist server (MOTD)
+	 * @api {get} /motd Get information about the Bckn server (MOTD)
 	 * @apiName GetMOTD
 	 * @apiGroup MiscellaneousGroup
 	 * @apiVersion 2.6.4
@@ -39,57 +39,57 @@ export default (): Router => {
 	 * @apiSuccess {Date} server_time The current server time, as an ISO-8601
 	 *   string
    *
-	 * @apiSuccess {String} public_url The public URL of this Krist node.
+	 * @apiSuccess {String} public_url The public URL of this Bckn node.
 	 * @apiSuccess {String} public_ws_url The public URL of the Websocket gateway.
 	 * @apiSuccess {Boolean} debug_mode If the server is running in debug mode,
    *    this will be set to `true`.
    *
-	 * @apiSuccess {Object} package Information related to this build of the Krist
+	 * @apiSuccess {Object} package Information related to this build of the Bckn
    *    source code.
-	 * @apiSuccess {String} package.name The name of the package (always `krist`).
-	 * @apiSuccess {String} package.version The version of the Krist server.
-	 * @apiSuccess {String} package.author The author of the Krist server (always
+	 * @apiSuccess {String} package.name The name of the package (always `bckn`).
+	 * @apiSuccess {String} package.version The version of the Bckn server.
+	 * @apiSuccess {String} package.author The author of the Bckn server (always
    *    `Lemmmy`)
-	 * @apiSuccess {String} package.license The license of the Krist server
+	 * @apiSuccess {String} package.license The license of the Bckn server
    *    (always `GPL-3.0`)
-	 * @apiSuccess {String} package.repository The repository of the Krist server
+	 * @apiSuccess {String} package.repository The repository of the Bckn server
    *    source code.
    *
-	 * @apiSuccess {Object} constants Constants related to the Krist server
+	 * @apiSuccess {Object} constants Constants related to the Bckn server
    *    configuration.
    * @apiSuccess {Number} constants.wallet_version The latest version of
-   *    KristWallet.
-   * @apiSuccess {Number} constants.name_cost The cost, in KST, of purchasing a
+   *    BcknWallet.
+   * @apiSuccess {Number} constants.name_cost The cost, in BCN, of purchasing a
    *    new name.
    *
 	 * @apiSuccess {Object} currency Constants related to the currency that this
    *    server represents.
    * @apiSuccess {String} currency.address_prefix The character that each
-   *    address starts with (e.g. `k`).
+   *    address starts with (e.g. `b`).
    * @apiSuccess {String} currency.name_suffix The suffix that each name ends
-   *    with after the dot (e.g. `kst`)
+   *    with after the dot (e.g. `bacon`)
    * @apiSuccess {String} currency.currency_name The full long name of this
-   *    currency (e.g. `Krist`).
+   *    currency (e.g. `Bacon`).
    * @apiSuccess {String} currency.currency_symbol The shorthand symbol for this
-   *    currency (e.g. `KST`).
+   *    currency (e.g. `BCN`).
    *
-   * @apiSuccess {String} notice Required copyright notice for the Krist server.
+   * @apiSuccess {String} notice Required copyright notice for the Bckn server.
 	 *
 	 * @apiSuccessExample {json} Success
    * {
    *    "ok": true,
    *    "server_time": "2025-04-23T19:47:34.049Z",
-   *    "motd": "The API URL has changed to https://krist.dev\n\nBlock submission is disabled.",
+   *    "motd": "The API URL has changed to https://bckn.dev\n\nBlock submission is disabled.",
    *    "set": "2025-04-23T19:47:29.000Z",
    *    "motd_set": "2025-04-23T19:47:29.000Z",
-   *    "public_url": "krist.dev",
-   *    "public_ws_url": "ws.krist.dev",
+   *    "public_url": "bckn.dev",
+   *    "public_ws_url": "ws.bckn.dev",
    *    "mining_enabled": false,
    *    "debug_mode": false,
    *    "work": 100000,
    *    "last_block": {
    *       "height": 2121616,
-   *       "address": "kristdeath",
+   *       "address": "bristdeath",
    *       "hash": "00000000009f16ac5ded918793310016ea2d61a29d5a328e244cd8478da6924c",
    *       "short_hash": "00000000009f",
    *       "value": 1,
@@ -97,11 +97,11 @@ export default (): Router => {
    *       "difficulty": 551
    *    },
    *    "package": {
-   *       "name": "krist",
+   *       "name": "bckn",
    *       "version": "3.5.4",
    *       "author": "Lemmmy",
    *       "licence": "GPL-3.0",
-   *       "repository": "https://github.com/tmpim/Krist"
+   *       "repository": "https://github.com/tmpim/Bckn"
    *    },
    *    "constants": {
    *       "wallet_version": 16,
@@ -113,10 +113,10 @@ export default (): Router => {
    *       "seconds_per_block": 60
    *    },
    *    "currency": {
-   *       "address_prefix": "k",
-   *       "name_suffix": "kst",
-   *       "currency_name": "Krist",
-   *       "currency_symbol": "KST"
+   *       "address_prefix": "b",
+   *       "name_suffix": "bacon",
+   *       "currency_name": "Bacon",
+   *       "currency_symbol": "BCN"
    *    },
    *    "notice": "Krist was originally created by 3d6 and Lemmmy. It is now owned and operated by tmpim, and licensed under GPL-3.0."
    * }

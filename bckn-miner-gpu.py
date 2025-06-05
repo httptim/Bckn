@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Krist GPU Miner for NVIDIA H100
+Bckn GPU Miner for NVIDIA H100
 Optimized for Digital Ocean GPU Droplet with 8x H100
 """
 
@@ -34,7 +34,7 @@ except ImportError:
     sys.exit(1)
 
 # Configuration
-KRIST_NODE = "https://bckn.dev"
+BCKN_NODE = "https://bckn.dev"
 PRIVATE_KEY = None
 ADDRESS = None
 GPU_BATCH_SIZE = 1024 * 1024 * 16  # 16M hashes per batch per GPU
@@ -208,16 +208,16 @@ __global__ void mine_kernel(const char* prefix, int prefix_len,
 """
 
 def generate_address():
-    """Generate a new Krist address"""
+    """Generate a new Bckn address"""
     import secrets
     private_key = secrets.token_urlsafe(32)
     
-    response = requests.post(f"{KRIST_NODE}/login", 
+    response = requests.post(f"{BCKN_NODE}/login", 
                            json={"privatekey": private_key})
     
     if response.status_code == 200:
         data = response.json()
-        print(f"\n=== NEW KRIST ADDRESS GENERATED ===")
+        print(f"\n=== NEW BCKN ADDRESS GENERATED ===")
         print(f"Private Key: {private_key}")
         print(f"Address: {data['address']}")
         print(f"Save your private key securely!")
@@ -231,7 +231,7 @@ def get_mining_info():
     """Get current work and last block info"""
     try:
         # Get work from simple endpoint
-        work_response = requests.get(f"{KRIST_NODE}/work", verify=False)
+        work_response = requests.get(f"{BCKN_NODE}/work", verify=False)
         if work_response.status_code != 200:
             print(f"Work API error: {work_response.status_code}")
             return None, None
@@ -244,7 +244,7 @@ def get_mining_info():
             return None, None
         
         # Get last block
-        block_response = requests.get(f"{KRIST_NODE}/blocks/last", verify=False)
+        block_response = requests.get(f"{BCKN_NODE}/blocks/last", verify=False)
         block_data = block_response.json()
         
         # Handle genesis block case
@@ -265,7 +265,7 @@ def get_mining_info():
 def submit_block(address, nonce):
     """Submit mining solution"""
     try:
-        response = requests.post(f"{KRIST_NODE}/submit",
+        response = requests.post(f"{BCKN_NODE}/submit",
                                json={"address": address, "nonce": str(nonce)},
                                verify=False)
         
@@ -274,7 +274,7 @@ def submit_block(address, nonce):
             if data.get('success'):
                 print(f"\n🎉 BLOCK FOUND! Nonce: {nonce}")
                 print(f"   Block Hash: {data.get('block', {}).get('hash', 'Unknown')}")
-                print(f"   Reward: {data.get('block', {}).get('value', 0)} KST")
+                print(f"   Reward: {data.get('block', {}).get('value', 0)} BCN")
                 return True
         else:
             print(f"\n❌ Submission failed: {response.text}")
@@ -345,13 +345,13 @@ def mine_gpu(address, last_hash, work):
 def main():
     global ADDRESS, PRIVATE_KEY, total_hashes, blocks_found
     
-    print("=== Krist GPU Miner for NVIDIA H100 ===")
+    print("=== Bckn GPU Miner for NVIDIA H100 ===")
     print(f"Detected {NUM_GPUS} GPU(s)")
     
     # Check for existing credentials or generate new
     if len(sys.argv) > 1:
         PRIVATE_KEY = sys.argv[1]
-        response = requests.post(f"{KRIST_NODE}/login", 
+        response = requests.post(f"{BCKN_NODE}/login", 
                                json={"privatekey": PRIVATE_KEY},
                                verify=False)
         if response.status_code == 200:
@@ -367,7 +367,7 @@ def main():
             if not PRIVATE_KEY:
                 return
         else:
-            print("Usage: python3 krist-miner-gpu.py <private_key>")
+            print("Usage: python3 bckn-miner-gpu.py <private_key>")
             return
     
     print("\nStarting GPU mining...\n")

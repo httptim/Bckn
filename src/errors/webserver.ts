@@ -19,15 +19,15 @@
  * For more project information, see <https://github.com/tmpim/krist>.
  */
 
-import { KristError } from "./KristError.js";
+import { BcknError } from "./BcknError.js";
 
-export class ErrorRouteNotFound extends KristError {
+export class ErrorRouteNotFound extends BcknError {
   constructor() {
     super("Route not found", "route_not_found", 404);
   }
 }
 
-export class ErrorRateLimitHit extends KristError {
+export class ErrorRateLimitHit extends BcknError {
   constructor() {
     super("Rate limit hit", "rate_limit_hit", 429);
   }

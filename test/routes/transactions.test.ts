@@ -37,7 +37,7 @@ const expectTransactionExist = (
 ) => async () => {
   const tx = await Transaction.findByPk(id);
   expect(tx).to.exist;
-  expect(tx).to.deep.include({ id, from: "k8juvewcui", to: to || "k7oax47quv", value: 1 });
+  expect(tx).to.deep.include({ id, from: "bv8c78oh67", to: to || "bu1sdlbvwh", value: 1 });
   if (metadata) expect(tx!.op).to.equal(metadata);
   if (useragent) expect(tx!.useragent).to.equal(useragent);
   if (origin) expect(tx!.origin).to.equal(origin);
@@ -52,7 +52,7 @@ describe("v1 routes: transactions", function() {
     it("should be disabled", async function() {
       const res = await api().get("/?pushtx");
       expect(res).to.be.text;
-      expect(res.text).to.equal("v1 transactions disabled. Contact Krist team");
+      expect(res.text).to.equal("v1 transactions disabled. Contact Bacon team");
     });
   });
 
@@ -67,7 +67,7 @@ describe("v1 routes: transactions", function() {
     it("should be disabled", async function() {
       const res = await api().get("/?pushtx2");
       expect(res).to.be.text;
-      expect(res.text).to.equal("Legacy transactions disabled. Contact Krist team");
+      expect(res.text).to.equal("Legacy transactions disabled. Contact Bacon team");
     });
   });
 });
@@ -87,7 +87,7 @@ describe("v2 routes: transactions", function() {
     it("should fail if transactions are disabled", async function() {
       const res = await api()
         .post("/transactions")
-        .send({ amount: 1, to: "k7oax47quv", privatekey: "a" });
+        .send({ amount: 1, to: "bu1sdlbvwh", privatekey: "a" });
 
       expect(res).to.be.json;
       expect(res.body).to.deep.include({ ok: false, error: "transactions_disabled" });
@@ -100,7 +100,7 @@ describe("v2 routes: transactions", function() {
     it("should deny unauthed addresses", async function() {
       const res = await api()
         .post("/transactions")
-        .send({ to: "k7oax47quv", amount: 1, privatekey: "c" });
+        .send({ to: "bu1sdlbvwh", amount: 1, privatekey: "c" });
 
       expect(res).to.be.json;
       expect(res.body).to.deep.include({ ok: false, error: "auth_failed" });
@@ -124,7 +124,7 @@ describe("v2 routes: transactions", function() {
     it("should error with a missing 'amount'", async function() {
       const res = await api()
         .post("/transactions")
-        .send({ to: "k7oax47quv", privatekey: "a" });
+        .send({ to: "bu1sdlbvwh", privatekey: "a" });
 
       expect(res).to.be.json;
       expect(res.body).to.deep.include({ ok: false, error: "missing_parameter", parameter: "amount" });
@@ -135,7 +135,7 @@ describe("v2 routes: transactions", function() {
       for (const amount of amounts) {
         const res = await api()
           .post("/transactions")
-          .send({ amount, to: "k7oax47quv", privatekey: "a" });
+          .send({ amount, to: "bu1sdlbvwh", privatekey: "a" });
 
         expect(res).to.be.json;
         expect(res.body).to.deep.include({ ok: false, parameter: "amount" });
@@ -147,7 +147,7 @@ describe("v2 routes: transactions", function() {
       for (const metadata of metadataList) {
         const res = await api()
           .post("/transactions")
-          .send({ amount: 1, to: "k7oax47quv", privatekey: "a", metadata });
+          .send({ amount: 1, to: "bu1sdlbvwh", privatekey: "a", metadata });
 
         expect(res).to.be.json;
         expect(res.body).to.deep.include({ ok: false, error: "invalid_parameter", parameter: "metadata" });
@@ -157,7 +157,7 @@ describe("v2 routes: transactions", function() {
     it("should error with a non-existent sender", async function() {
       const res = await api()
         .post("/transactions")
-        .send({ amount: 1, to: "k7oax47quv", privatekey: "notfound" });
+        .send({ amount: 1, to: "bu1sdlbvwh", privatekey: "notfound" });
 
       expect(res).to.be.json;
       expect(res.body).to.deep.include({ ok: false, error: "insufficient_funds" });
@@ -166,7 +166,7 @@ describe("v2 routes: transactions", function() {
     it("should error with insufficient funds", async function() {
       const res = await api()
         .post("/transactions")
-        .send({ amount: 11, to: "k7oax47quv", privatekey: "a" });
+        .send({ amount: 11, to: "bu1sdlbvwh", privatekey: "a" });
 
       expect(res).to.be.json;
       expect(res.body).to.deep.include({ ok: false, error: "insufficient_funds" });
@@ -193,7 +193,7 @@ describe("v2 routes: transactions", function() {
     it("should error when paying to a name that doesn't exist", async function() {
       const res = await api()
         .post("/transactions")
-        .send({ amount: 1, to: "notfound.kst", privatekey: "a" });
+        .send({ amount: 1, to: "notfound.bacon", privatekey: "a" });
 
       expect(res).to.be.json;
       expect(res.body).to.deep.include({ ok: false, error: "name_not_found" });
@@ -202,7 +202,7 @@ describe("v2 routes: transactions", function() {
     it("should error when paying to a name that doesn't exist via metadata", async function() {
       const res = await api()
         .post("/transactions")
-        .send({ amount: 1, to: "k7oax47quv", privatekey: "a", metadata: "notfound.kst" });
+        .send({ amount: 1, to: "bu1sdlbvwh", privatekey: "a", metadata: "notfound.bacon" });
 
       expect(res).to.be.json;
       expect(res.body).to.deep.include({ ok: false, error: "name_not_found" });
@@ -211,7 +211,7 @@ describe("v2 routes: transactions", function() {
     it("should error when using an invalid request ID", async function() {
       const res = await api()
         .post("/transactions")
-        .send({ amount: 1, to: "k7oax47quv", privatekey: "a", requestId: "invalid" });
+        .send({ amount: 1, to: "bu1sdlbvwh", privatekey: "a", requestId: "invalid" });
 
       expect(res).to.be.json;
       expect(res.body).to.deep.include({ ok: false, error: "invalid_parameter", parameter: "requestId" });
@@ -222,12 +222,12 @@ describe("v2 routes: transactions", function() {
     it("should make a transaction", async function() {
       const res = await api()
         .post("/transactions")
-        .send({ amount: 1, to: "k7oax47quv", privatekey: "a" });
+        .send({ amount: 1, to: "bu1sdlbvwh", privatekey: "a" });
 
       expect(res).to.be.json;
       expect(res.body).to.deep.include({ ok: true });
       expect(res.body.transaction).to.be.an("object");
-      expect(res.body.transaction).to.deep.include({ id: 1, from: "k8juvewcui", to: "k7oax47quv", value: 1, type: "transfer" });
+      expect(res.body.transaction).to.deep.include({ id: 1, from: "bv8c78oh67", to: "bu1sdlbvwh", value: 1, type: "transfer" });
       expect(res.body.transaction.time).to.be.a("string");
       expect(res.body.transaction.name).to.not.be.ok;
       expect(res.body.transaction.metadata).to.not.be.ok;
@@ -238,11 +238,11 @@ describe("v2 routes: transactions", function() {
     it("should exist in the database", expectTransactionExist(1));
 
     it("should have altered the balances", async function() {
-      const from = await Address.findOne({ where: { address: "k8juvewcui" }});
+      const from = await Address.findOne({ where: { address: "bv8c78oh67" }});
       expect(from).to.exist;
       expect(from!.balance).to.equal(9);
 
-      const to = await Address.findOne({ where: { address: "k7oax47quv" }});
+      const to = await Address.findOne({ where: { address: "bu1sdlbvwh" }});
       expect(to).to.exist;
       expect(to!.balance).to.equal(1);
     });
@@ -250,60 +250,60 @@ describe("v2 routes: transactions", function() {
     it("should support metadata", async function() {
       const res = await api()
         .post("/transactions")
-        .send({ amount: 1, to: "k7oax47quv", privatekey: "a", metadata: "Hello, world!" });
+        .send({ amount: 1, to: "bu1sdlbvwh", privatekey: "a", metadata: "Hello, world!" });
 
       expect(res).to.be.json;
       expect(res.body).to.deep.include({ ok: true });
       expect(res.body.transaction).to.be.an("object");
-      expect(res.body.transaction).to.deep.include({ id: 2, from: "k8juvewcui", to: "k7oax47quv", value: 1, type: "transfer" });
+      expect(res.body.transaction).to.deep.include({ id: 2, from: "bv8c78oh67", to: "bu1sdlbvwh", value: 1, type: "transfer" });
       expect(res.body.transaction.metadata).to.equal("Hello, world!");
     });
 
     it("should exist in the database", expectTransactionExist(2, undefined, "Hello, world!"));
 
     it("should create a temporary name to test", async function() {
-      const name = await Name.create({ name: "test", owner: "k7oax47quv", original_owner: "k7oax47quv",
+      const name = await Name.create({ name: "test", owner: "bu1sdlbvwh", original_owner: "bu1sdlbvwh",
         registered: new Date(), unpaid: 0 });
       expect(name).to.exist;
-      expect(name).to.deep.include({ name: "test", owner: "k7oax47quv" });
+      expect(name).to.deep.include({ name: "test", owner: "bu1sdlbvwh" });
     });
 
     it("should transact to a name's owner", async function() {
       const res = await api()
         .post("/transactions")
-        .send({ amount: 1, to: "test.kst", privatekey: "a" });
+        .send({ amount: 1, to: "test.bacon", privatekey: "a" });
 
       expect(res).to.be.json;
       expect(res.body).to.deep.include({ ok: true });
       expect(res.body.transaction).to.be.an("object");
-      expect(res.body.transaction).to.deep.include({ id: 3, from: "k8juvewcui", to: "k7oax47quv", value: 1, type: "transfer" });
-      expect(res.body.transaction.metadata).to.equal("test.kst");
+      expect(res.body.transaction).to.deep.include({ id: 3, from: "bv8c78oh67", to: "bu1sdlbvwh", value: 1, type: "transfer" });
+      expect(res.body.transaction.metadata).to.equal("test.bacon");
       expect(res.body.transaction.sent_name).to.equal("test");
     });
 
     it("should preserve existing metadata with a transaction to a name", async function() {
       const res = await api()
         .post("/transactions")
-        .send({ amount: 1, to: "test.kst", privatekey: "a", metadata: "Hello, world!" });
+        .send({ amount: 1, to: "test.bacon", privatekey: "a", metadata: "Hello, world!" });
 
       expect(res).to.be.json;
       expect(res.body).to.deep.include({ ok: true });
       expect(res.body.transaction).to.be.an("object");
-      expect(res.body.transaction).to.deep.include({ id: 4, from: "k8juvewcui", to: "k7oax47quv", value: 1, type: "transfer" });
-      expect(res.body.transaction.metadata).to.equal("test.kst;Hello, world!");
+      expect(res.body.transaction).to.deep.include({ id: 4, from: "bv8c78oh67", to: "bu1sdlbvwh", value: 1, type: "transfer" });
+      expect(res.body.transaction.metadata).to.equal("test.bacon;Hello, world!");
       expect(res.body.transaction.sent_name).to.equal("test");
     });
 
     it("should support metanames", async function() {
       const res = await api()
         .post("/transactions")
-        .send({ amount: 1, to: "meta@test.kst", privatekey: "a" });
+        .send({ amount: 1, to: "meta@test.bacon", privatekey: "a" });
 
       expect(res).to.be.json;
       expect(res.body).to.deep.include({ ok: true });
       expect(res.body.transaction).to.be.an("object");
-      expect(res.body.transaction).to.deep.include({ id: 5, from: "k8juvewcui", to: "k7oax47quv", value: 1, type: "transfer" });
-      expect(res.body.transaction.metadata).to.equal("meta@test.kst");
+      expect(res.body.transaction).to.deep.include({ id: 5, from: "bv8c78oh67", to: "bu1sdlbvwh", value: 1, type: "transfer" });
+      expect(res.body.transaction.metadata).to.equal("meta@test.bacon");
       expect(res.body.transaction.sent_metaname).to.equal("meta");
       expect(res.body.transaction.sent_name).to.equal("test");
     });
@@ -311,13 +311,13 @@ describe("v2 routes: transactions", function() {
     it("should support metanames and preserve metadata", async function() {
       const res = await api()
         .post("/transactions")
-        .send({ amount: 1, to: "meta@test.kst", privatekey: "a", metadata: "Hello, world!" });
+        .send({ amount: 1, to: "meta@test.bacon", privatekey: "a", metadata: "Hello, world!" });
 
       expect(res).to.be.json;
       expect(res.body).to.deep.include({ ok: true });
       expect(res.body.transaction).to.be.an("object");
-      expect(res.body.transaction).to.deep.include({ id: 6, from: "k8juvewcui", to: "k7oax47quv", value: 1, type: "transfer" });
-      expect(res.body.transaction.metadata).to.equal("meta@test.kst;Hello, world!");
+      expect(res.body.transaction).to.deep.include({ id: 6, from: "bv8c78oh67", to: "bu1sdlbvwh", value: 1, type: "transfer" });
+      expect(res.body.transaction.metadata).to.equal("meta@test.bacon;Hello, world!");
       expect(res.body.transaction.sent_metaname).to.equal("meta");
       expect(res.body.transaction.sent_name).to.equal("test");
     });
@@ -325,16 +325,16 @@ describe("v2 routes: transactions", function() {
     it("should transact to a new address", async function() {
       const res = await api()
         .post("/transactions")
-        .send({ amount: 1, to: "knotfound0", privatekey: "a" });
+        .send({ amount: 1, to: "bnotfound0", privatekey: "a" });
 
       expect(res).to.be.json;
       expect(res.body).to.deep.include({ ok: true });
       expect(res.body.transaction).to.be.an("object");
-      expect(res.body.transaction).to.deep.include({ id: 7, from: "k8juvewcui", to: "knotfound0", value: 1, type: "transfer" });
+      expect(res.body.transaction).to.deep.include({ id: 7, from: "bv8c78oh67", to: "bnotfound0", value: 1, type: "transfer" });
     });
 
     it("should have created that address", async function() {
-      const address = await Address.findOne({ where: { address: "knotfound0" }});
+      const address = await Address.findOne({ where: { address: "bnotfound0" }});
       expect(address).to.exist;
       expect(address!.balance).to.equal(1);
     });
@@ -344,12 +344,12 @@ describe("v2 routes: transactions", function() {
         .post("/transactions")
         .set("User-Agent", "krist-test")
         .set("Origin", "https://example.com")
-        .send({ amount: 1, to: "k7oax47quv", privatekey: "a" });
+        .send({ amount: 1, to: "bu1sdlbvwh", privatekey: "a" });
 
       expect(res).to.be.json;
       expect(res.body).to.deep.include({ ok: true });
       expect(res.body.transaction).to.be.an("object");
-      expect(res.body.transaction).to.deep.include({ id: 8, from: "k8juvewcui", to: "k7oax47quv", value: 1, type: "transfer" });
+      expect(res.body.transaction).to.deep.include({ id: 8, from: "bv8c78oh67", to: "bu1sdlbvwh", value: 1, type: "transfer" });
       expect(res.body.transaction.useragent).to.not.be.ok;
       expect(res.body.transaction.origin).to.not.be.ok;
     });
@@ -359,32 +359,32 @@ describe("v2 routes: transactions", function() {
     it("should transact to a name's owner via metadata", async function() {
       const res = await api()
         .post("/transactions")
-        .send({ amount: 1, to: "k7oax47quv", privatekey: "a", metadata: "test.kst" });
+        .send({ amount: 1, to: "bu1sdlbvwh", privatekey: "a", metadata: "test.bacon" });
 
       expect(res).to.be.json;
       expect(res.body).to.deep.include({ ok: true });
       expect(res.body.transaction).to.be.an("object");
-      expect(res.body.transaction).to.deep.include({ id: 9, from: "k8juvewcui", to: "k7oax47quv", value: 1, type: "transfer" });
-      expect(res.body.transaction.metadata).to.equal("test.kst");
+      expect(res.body.transaction).to.deep.include({ id: 9, from: "bv8c78oh67", to: "bu1sdlbvwh", value: 1, type: "transfer" });
+      expect(res.body.transaction.metadata).to.equal("test.bacon");
       expect(res.body.transaction.sent_name).to.equal("test");
     });
 
     it("should transact to a name's owner even when metadata is present", async function() {
       const res = await api()
         .post("/transactions")
-        .send({ amount: 1, to: "test.kst", privatekey: "a", metadata: "notfound.kst" });
+        .send({ amount: 1, to: "test.bacon", privatekey: "a", metadata: "notfound.bacon" });
 
       expect(res).to.be.json;
       expect(res.body).to.deep.include({ ok: true });
       expect(res.body.transaction).to.be.an("object");
-      expect(res.body.transaction).to.deep.include({ id: 10, from: "k8juvewcui", to: "k7oax47quv", value: 1, type: "transfer" });
-      expect(res.body.transaction.metadata).to.equal("test.kst;notfound.kst");
+      expect(res.body.transaction).to.deep.include({ id: 10, from: "bv8c78oh67", to: "bu1sdlbvwh", value: 1, type: "transfer" });
+      expect(res.body.transaction.metadata).to.equal("test.bacon;notfound.bacon");
       expect(res.body.transaction.sent_name).to.equal("test");
     });
 
     it("should transact idempotently when using a request ID", async function() {
       // Get previous balance
-      let from = await Address.findOne({ where: { address: "kvhccnbm95" }});
+      let from = await Address.findOne({ where: { address: "b7kflkbsep" }});
       const priorBalance = from!.balance;
       const expectedBalance = priorBalance - 1;
 
@@ -392,7 +392,7 @@ describe("v2 routes: transactions", function() {
       const requestId = uuidv4();
       const res1 = await api()
         .post("/transactions")
-        .send({ amount: 1, to: "kkkkkkkkkk", privatekey: "z", requestId });
+        .send({ amount: 1, to: "bbbbbbbbbb", privatekey: "z", requestId });
 
       expect(res1).to.be.json;
       expect(res1.body).to.deep.include({ ok: true });
@@ -400,22 +400,22 @@ describe("v2 routes: transactions", function() {
       const txId = res1.body.transaction.id;
 
       // Get new balance
-      from = await Address.findOne({ where: { address: "kvhccnbm95" }});
+      from = await Address.findOne({ where: { address: "b7kflkbsep" }});
       expect(from!.balance).to.equal(expectedBalance);
 
       // Get transaction
       const tx = await Transaction.findOne({ where: { request_id: requestId } });
       expect(tx).to.exist;
       expect(tx!.id).to.equal(txId);
-      expect(tx!.from).to.equal("kvhccnbm95");
-      expect(tx!.to).to.equal("kkkkkkkkkk");
+      expect(tx!.from).to.equal("b7kflkbsep");
+      expect(tx!.to).to.equal("bbbbbbbbbb");
       expect(tx!.value).to.equal(1);
       expect(tx!.request_id).to.equal(requestId);
 
       // Re-submit the transaction
       const res2 = await api()
         .post("/transactions")
-        .send({ amount: 1, to: "kkkkkkkkkk", privatekey: "z", requestId });
+        .send({ amount: 1, to: "bbbbbbbbbb", privatekey: "z", requestId });
 
       expect(res2).to.be.json;
       expect(res2.body).to.deep.include({ ok: true });
@@ -426,7 +426,7 @@ describe("v2 routes: transactions", function() {
       expect(res2.body).to.deep.equal(res1.body);
 
       // Make sure the balance didn't change
-      from = await Address.findOne({ where: { address: "kvhccnbm95" }});
+      from = await Address.findOne({ where: { address: "b7kflkbsep" }});
       expect(from!.balance).to.equal(expectedBalance);
     });
 
@@ -435,7 +435,7 @@ describe("v2 routes: transactions", function() {
       const requestId = uuidv4();
       const res1 = await api()
         .post("/transactions")
-        .send({ amount: 1, to: "kkkkkkkkkk", privatekey: "z", requestId });
+        .send({ amount: 1, to: "bbbbbbbbbb", privatekey: "z", requestId });
 
       expect(res1).to.be.json;
       expect(res1.body).to.deep.include({ ok: true });
@@ -443,7 +443,7 @@ describe("v2 routes: transactions", function() {
       // Re-submit the transaction
       const res2 = await api()
         .post("/transactions")
-        .send({ amount: 2, to: "kkkkkkkkkk", privatekey: "z", requestId });
+        .send({ amount: 2, to: "bbbbbbbbbb", privatekey: "z", requestId });
 
       expect(res2).to.be.json;
       expect(res2.body).to.deep.include({ ok: false, error: "transaction_conflict" });
@@ -457,18 +457,18 @@ describe("transaction edge cases", function() {
   it("should truncate decimal transactions", async function() {
     const res = await api()
       .post("/transactions")
-      .send({ amount: 1.5, to: "k7oax47quv", privatekey: "a" });
+      .send({ amount: 1.5, to: "bu1sdlbvwh", privatekey: "a" });
 
     expect(res).to.be.json;
     expect(res.body).to.deep.include({ ok: true });
     expect(res.body.transaction).to.be.an("object");
-    expect(res.body.transaction).to.deep.include({ from: "k8juvewcui", to: "k7oax47quv", value: 1, type: "transfer" });
+    expect(res.body.transaction).to.deep.include({ from: "bv8c78oh67", to: "bu1sdlbvwh", value: 1, type: "transfer" });
   });
 
   it("should handle large simultaneous transactions", async function() {
     const sendTx = () => api()
       .post("/transactions")
-      .send({ amount: 25000, to: "kwsgj3x184", privatekey: "d" });
+      .send({ amount: 25000, to: "byouf00c9w", privatekey: "d" });
 
     const results = await Promise.all([sendTx(), sendTx(), sendTx()]);
     let succeeded = 0, failed = 0;
@@ -483,10 +483,10 @@ describe("transaction edge cases", function() {
     expect(succeeded).to.equal(1);
     expect(failed).to.equal(2);
 
-    const addr1 = await Address.findOne({ where: { address: "k0duvsr4qn" }});
+    const addr1 = await Address.findOne({ where: { address: "bw0zvuz4zn" }});
     expect(addr1).to.be.ok;
     expect(addr1!.balance).to.equal(0);
-    const addr2 = await Address.findOne({ where: { address: "kwsgj3x184" }});
+    const addr2 = await Address.findOne({ where: { address: "byouf00c9w" }});
     expect(addr2).to.be.ok;
     expect(addr2!.balance).to.equal(25000);
   });
@@ -495,12 +495,12 @@ describe("transaction edge cases", function() {
     const start = 25000;
 
     // Reset the balances of the testing addresses
-    await Address.update({ balance: start }, { where: { address: "k0duvsr4qn" }});
-    await Address.update({ balance: 0 }, { where: { address: "kwsgj3x184" }});
+    await Address.update({ balance: start }, { where: { address: "bw0zvuz4zn" }});
+    await Address.update({ balance: 0 }, { where: { address: "byouf00c9w" }});
 
     const sendTx = () => api()
       .post("/transactions")
-      .send({ amount: 1, to: "kwsgj3x184", privatekey: "d" });
+      .send({ amount: 1, to: "byouf00c9w", privatekey: "d" });
 
     // Continuously monitor the state of the DB pool until the test is complete
     let poolCheckTimer: NodeJS.Timeout | null = null;
@@ -525,10 +525,10 @@ describe("transaction edge cases", function() {
     expect(succeeded).to.equal(count);
     expect(failed).to.equal(0);
 
-    const addr1 = await Address.findOne({ where: { address: "k0duvsr4qn" }});
+    const addr1 = await Address.findOne({ where: { address: "bw0zvuz4zn" }});
     expect(addr1).to.be.ok;
     expect(addr1!.balance).to.equal(start - count);
-    const addr2 = await Address.findOne({ where: { address: "kwsgj3x184" }});
+    const addr2 = await Address.findOne({ where: { address: "byouf00c9w" }});
     expect(addr2).to.be.ok;
     expect(addr2!.balance).to.equal(count);
 

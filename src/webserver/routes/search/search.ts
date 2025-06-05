@@ -65,16 +65,16 @@ export default (): Router => {
   const router = Router();
 
   /**
-   * @api {get} /search Search the Krist network
+   * @api {get} /search Search the Bacon network
    * @apiName Search
    * @apiGroup LookupGroup
    * @apiVersion 2.8.0
    *
-   * @apiDescription Search the Krist network for objects that match the given query, including addresses, names, and
+   * @apiDescription Search the Bacon network for objects that match the given query, including addresses, names, and
    * transactions.
    *
    * - Addresses are searched by exact address match only
-   * - Names are searched by their name with and without the `.kst` suffix
+   * - Names are searched by their name with and without the `.bcn` suffix
    * - Transactions are searched by ID
    *
    * For more advanced transaction searches (by involved addresses and metadata), see the `/search/extended` endpoint.
@@ -85,14 +85,14 @@ export default (): Router => {
    *
    * @apiSuccess {Object} matches The results of the search query.
    * @apiSuccess {Object} matches.exactAddress An exact address match - this will be an Address object if the query
-   *   looked like a valid Krist address, and that address exists in the database. Otherwise, if there is no result, it
+   *   looked like a valid Bacon address, and that address exists in the database. Otherwise, if there is no result, it
    *   will be `false`.
    * @apiSuccess {Object} matches.exactName An exact name match - this will be a Name object if the query looked like a
-   *   valid Krist name (with or without the `.kst` suffix), and that name exists in the database. Otherwise, if there
+   *   valid Bacon name (with or without the `.bcn` suffix), and that name exists in the database. Otherwise, if there
    *   is no result, it will be `false`.
    * @apiSuccess {Object} matches.exactBlock Currently unused.
    * @apiSuccess {Object} matches.exactTransaction An exact transaction match - this will be a Transaction object if the
-   *   query looked like a valid Krist transaction ID, and that transaction exists in the database. Otherwise, if there
+   *   query looked like a valid Bacon transaction ID, and that transaction exists in the database. Otherwise, if there
    *   is no result, it will be `false`.
    *
    * @apiSuccessExample {json} Success - Name result
@@ -111,7 +111,7 @@ export default (): Router => {
    *     "exactAddress": false,
    *     "exactName": {
    *       "name": "example",
-   *       "owner": "kxxxxxxxxx",
+   *       "owner": "bxxxxxxxxx",
    *       "registered": "2015-05-24T00:49:04.000Z",
    *       "updated": "2020-01-04T05:09:11.000Z",
    *       "a": null
@@ -138,7 +138,7 @@ export default (): Router => {
    *     "exactAddress": false,
    *     "exactName": {
    *       "name": "1234",
-   *       "owner": "krazedrugz",
+   *       "owner": "brazedrugz",
    *       "registered": "2016-10-07T15:55:48.000Z",
    *       "updated": "2016-10-07T15:55:48.000Z",
    *       "a": null

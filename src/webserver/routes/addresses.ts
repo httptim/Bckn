@@ -143,14 +143,14 @@ export default (): Router => {
 	 *          "total": 500,
 	 *          "addresses": [
 	 *              {
-	 *                  "address": "k2sdlnjo1m",
+	 *                  "address": "b2sdlnjo1m",
 	 *                  "balance": 762010,
 	 *                  "totalin": 11316,
 	 *                  "totalout": 783984,
 	 *                  "firstseen": "2016-01-24T05:08:14.000Z"
 	 *              },
 	 *              {
-	 *                  "address": "k7u9sa6vbf",
+	 *                  "address": "b7u9sa6vbf",
 	 *                  "balance": 505832,
 	 *                  "totalin": 547785,
 	 *                  "totalout": 41953,
@@ -179,7 +179,7 @@ export default (): Router => {
 	 * {
 	 *     "ok": true,
 	 *     "address": {
-	 *         "address": "kre3w0i79j",
+	 *         "address": "b70dxcdr3n",
 	 *         "balance": 86945,
 	 *         "totalin": 123364,
 	 *         "totalout": 38292,
@@ -232,7 +232,7 @@ export default (): Router => {
    *     "names": [
    *         {
    *             "name": "supercoolname",
-   *             "owner": "kre3w0i79j",
+   *             "owner": "b70dxcdr3n",
    *             "registered": "2016-01-30T15:45:55.000Z",
    *             "updated": "2016-01-30T15:45:55.000Z",
    *             "a": null
@@ -282,8 +282,8 @@ export default (): Router => {
    *     "transactions": [
    *         {
    *             "id": 153197,
-   *             "from": "kxxhsp1uzh",
-   *             "to": "kre3w0i79j",
+   *             "from": "bxxhsp1uzh",
+   *             "to": "b70dxcdr3n",
    *             "value": 75,
    *             "time": "2016-02-02T23:30:51.000Z",
    *             "name": null,
@@ -292,8 +292,8 @@ export default (): Router => {
    *         },
    *         {
    *             "id": 153196,
-   *             "from": "kre3w0i79j",
-   *             "to": "kxxhsp1uzh",
+   *             "from": "b70dxcdr3n",
+   *             "to": "bxxhsp1uzh",
    *             "value": 50,
    *             "time": "2016-02-02T23:30:39.000Z",
    *             "name": null,

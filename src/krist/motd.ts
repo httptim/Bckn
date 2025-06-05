@@ -88,7 +88,7 @@ export interface DetailedMotd {
 }
 
 export async function getMotd(): Promise<Motd> {
-  const motd = await redis.get(rKey("motd")) || "Welcome to Krist!";
+  const motd = await redis.get(rKey("motd")) || "Welcome to Bckn!";
   const rawDate = await redis.get(rKey("motd:date"));
   const date = typeof rawDate === "string" ? new Date(rawDate) : new Date(0);
 
@@ -138,11 +138,11 @@ export async function getDetailedMotd(): Promise<DetailedMotd> {
     },
 
     currency: {
-      address_prefix: "k",
-      name_suffix: "kst",
+      address_prefix: "b",
+      name_suffix: "bacon",
 
-      currency_name: "Krist",
-      currency_symbol: "KST"
+      currency_name: "Bacon",
+      currency_symbol: "BCN"
     },
 
     // NOTE: It is against the license to modify this string on a fork node

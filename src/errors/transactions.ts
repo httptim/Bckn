@@ -19,27 +19,27 @@
  * For more project information, see <https://github.com/tmpim/krist>.
  */
 
-import { KristError } from "./KristError.js";
+import { BcknError } from "./BcknError.js";
 
-export class ErrorInsufficientFunds extends KristError {
+export class ErrorInsufficientFunds extends BcknError {
   constructor() {
     super("Insufficient funds", "insufficient_funds", 403);
   }
 }
 
-export class ErrorTransactionNotFound extends KristError {
+export class ErrorTransactionNotFound extends BcknError {
   constructor() {
     super("Transaction not found", "transaction_not_found", 404);
   }
 }
 
-export class ErrorTransactionsDisabled extends KristError {
+export class ErrorTransactionsDisabled extends BcknError {
   constructor() {
     super("Transactions disabled", "transactions_disabled", 423);
   }
 }
 
-export class ErrorTransactionConflict extends KristError<{
+export class ErrorTransactionConflict extends BcknError<{
   parameter: string;
 }> {
   constructor(

@@ -38,7 +38,7 @@ import { verifyAddress } from "../krist/addresses/verify.js";
 import { createName, getName, getNames, getNamesByAddress, getUnpaidNames } from "../krist/names/index.js";
 import { areTransactionsEnabled } from "../krist/switches.js";
 import { createTransaction, logTransaction, pushTransaction } from "../krist/transactions/create.js";
-import { isValidARecord, isValidKristAddress, isValidName, validateLimitOffset } from "../utils/index.js";
+import { isValidARecord, isValidBcknAddress, isValidName, validateLimitOffset } from "../utils/index.js";
 import { checkTxRateLimits } from "../utils/rateLimit.js";
 import { NAME_COST } from "../utils/vars.js";
 
@@ -91,7 +91,7 @@ export async function ctrlGetNamesByAddress(
   offset: Offset
 ): Promise<PaginatedResult<Name>> {
   if (!address) throw new ErrorMissingParameter("address");
-  if (!isValidKristAddress(address)) throw new ErrorInvalidParameter("address");
+  if (!isValidBcknAddress(address)) throw new ErrorInvalidParameter("address");
 
   await validateLimitOffset(limit, offset);
 
@@ -169,7 +169,7 @@ export async function ctrlTransferName(
   if (!recipient) throw new ErrorMissingParameter("address");
 
   if (!isValidName(name)) throw new ErrorInvalidParameter("name");
-  if (!isValidKristAddress(recipient, true))
+  if (!isValidBcknAddress(recipient, true))
     throw new ErrorInvalidParameter("address");
 
   name = cleanNameInput(name);

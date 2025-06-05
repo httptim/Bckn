@@ -19,9 +19,9 @@
  * For more project information, see <https://github.com/tmpim/krist>.
  */
 
-import { KristError } from "./KristError.js";
+import { BcknError } from "./BcknError.js";
 
-export class ErrorAddressNotFound extends KristError<{ address?: string | null }> {
+export class ErrorAddressNotFound extends BcknError<{ address?: string | null }> {
   constructor(address: string) {
     super(
       `Address ${address ?? "[null]"} not found`,
@@ -32,7 +32,7 @@ export class ErrorAddressNotFound extends KristError<{ address?: string | null }
   }
 }
 
-export class ErrorAuthFailed extends KristError {
+export class ErrorAuthFailed extends BcknError {
   constructor() {
     super("Authentication failed", "auth_failed", 401);
   }

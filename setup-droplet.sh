@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Krist Server Setup Script for Digital Ocean Droplet
+# Bckn Server Setup Script for Digital Ocean Droplet
 # Tested on Ubuntu 24.10 with modern MariaDB, Redis, and Nginx
 
 set -e  # Exit on error
@@ -16,12 +16,12 @@ NC='\033[0m' # No Color
 # Configuration
 DOMAIN="bckn.dev"
 WS_DOMAIN="ws.bckn.dev"
-KRIST_USER="krist"
-KRIST_DIR="/home/krist/krist-server"
+BCKN_USER="bckn"
+BCKN_DIR="/home/bckn/bckn-server"
 NODE_VERSION="20"
 LETS_ENCRYPT_DIR="/var/www/letsencrypt"
 
-echo -e "${BLUE}=== Krist Server Setup Script ===${NC}"
+echo -e "${BLUE}=== Bckn Server Setup Script ===${NC}"
 echo -e "${BLUE}Domain: ${DOMAIN}${NC}"
 echo -e "${BLUE}WebSocket Domain: ${WS_DOMAIN}${NC}"
 echo -e "${BLUE}Ubuntu Version: $(lsb_release -d | cut -f2)${NC}"
@@ -46,7 +46,7 @@ check_status() {
 # Generate secure passwords (using hex to avoid special character issues)
 echo -e "${YELLOW}Generating secure passwords...${NC}"
 DB_ROOT_PASS=$(openssl rand -hex 32)
-DB_KRIST_PASS=$(openssl rand -hex 32)
+DB_BCKN_PASS=$(openssl rand -hex 32)
 REDIS_PASS=$(openssl rand -hex 32)
 PROMETHEUS_PASS=$(openssl rand -hex 16)
 
@@ -124,15 +124,15 @@ DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';
 FLUSH PRIVILEGES;
 EOF
 
-# Create Krist database and user
-echo -e "${YELLOW}Creating Krist database...${NC}"
+# Create Bckn database and user
+echo -e "${YELLOW}Creating Bckn database...${NC}"
 mysql -u root -p"${DB_ROOT_PASS}" <<EOF
-CREATE DATABASE IF NOT EXISTS krist CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER IF NOT EXISTS 'krist'@'localhost' IDENTIFIED BY '${DB_KRIST_PASS}';
-GRANT ALL PRIVILEGES ON krist.* TO 'krist'@'localhost';
+CREATE DATABASE IF NOT EXISTS bckn CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER IF NOT EXISTS 'bckn'@'localhost' IDENTIFIED BY '${DB_BCKN_PASS}';
+GRANT ALL PRIVILEGES ON bckn.* TO 'bckn'@'localhost';
 FLUSH PRIVILEGES;
 EOF
-check_status "Krist database creation"
+check_status "Bckn database creation"
 
 # Install Redis
 echo -e "${YELLOW}Installing Redis...${NC}"
@@ -142,7 +142,7 @@ check_status "Redis installation"
 # Configure Redis (write complete config to avoid sed issues)
 echo -e "${YELLOW}Configuring Redis...${NC}"
 cat > /etc/redis/redis.conf <<EOF
-# Redis Configuration for Krist
+# Redis Configuration for Bckn
 bind 127.0.0.1 ::1
 protected-mode yes
 port 6379
@@ -218,48 +218,48 @@ else
     exit 1
 fi
 
-# Create krist user
-echo -e "${YELLOW}Creating krist user...${NC}"
-if ! id -u ${KRIST_USER} >/dev/null 2>&1; then
-    useradd -m -s /bin/bash ${KRIST_USER}
-    check_status "Krist user creation"
+# Create bckn user
+echo -e "${YELLOW}Creating bckn user...${NC}"
+if ! id -u ${BCKN_USER} >/dev/null 2>&1; then
+    useradd -m -s /bin/bash ${BCKN_USER}
+    check_status "Bckn user creation"
 else
-    echo -e "${GREEN}Krist user already exists${NC}"
+    echo -e "${GREEN}Bckn user already exists${NC}"
 fi
 
-# Clone Krist repository
-echo -e "${YELLOW}Cloning Krist repository...${NC}"
-if [ -d "${KRIST_DIR}" ]; then
-    rm -rf ${KRIST_DIR}
+# Clone Bckn repository
+echo -e "${YELLOW}Cloning Bckn repository...${NC}"
+if [ -d "${BCKN_DIR}" ]; then
+    rm -rf ${BCKN_DIR}
 fi
-sudo -u ${KRIST_USER} git clone https://github.com/httptim/Bckn ${KRIST_DIR}
+sudo -u ${BCKN_USER} git clone https://github.com/httptim/Bckn ${BCKN_DIR}
 check_status "Repository clone"
 
 # Install dependencies and build
 echo -e "${YELLOW}Installing Node.js dependencies...${NC}"
-cd ${KRIST_DIR}
-sudo -u ${KRIST_USER} pnpm install --frozen-lockfile
+cd ${BCKN_DIR}
+sudo -u ${BCKN_USER} pnpm install --frozen-lockfile
 check_status "Node.js dependencies installation"
 
-echo -e "${YELLOW}Building Krist...${NC}"
-sudo -u ${KRIST_USER} pnpm run build
-check_status "Krist build"
+echo -e "${YELLOW}Building Bckn...${NC}"
+sudo -u ${BCKN_USER} pnpm run build
+check_status "Bckn build"
 
 # Create .env file
 echo -e "${YELLOW}Creating environment configuration...${NC}"
-cat > ${KRIST_DIR}/.env <<EOF
+cat > ${BCKN_DIR}/.env <<EOF
 # Database Configuration
 DB_HOST=127.0.0.1
 DB_PORT=3306
-DB_NAME=krist
-DB_USER=krist
-DB_PASS=${DB_KRIST_PASS}
+DB_NAME=bckn
+DB_USER=bckn
+DB_PASS=${DB_BCKN_PASS}
 
 # Redis Configuration
 REDIS_HOST=127.0.0.1
 REDIS_PORT=6379
 REDIS_PASS=${REDIS_PASS}
-REDIS_PREFIX=krist:
+REDIS_PREFIX=bckn:
 
 # Web Server Configuration
 WEB_LISTEN=8080
@@ -280,35 +280,35 @@ DB_POOL_ACQUIRE_MS=30000
 DB_POOL_EVICT_MS=10000
 EOF
 
-chown ${KRIST_USER}:${KRIST_USER} ${KRIST_DIR}/.env
-chmod 600 ${KRIST_DIR}/.env
+chown ${BCKN_USER}:${BCKN_USER} ${BCKN_DIR}/.env
+chmod 600 ${BCKN_DIR}/.env
 check_status "Environment configuration"
 
 # Create systemd service
 echo -e "${YELLOW}Creating systemd service...${NC}"
-cat > /etc/systemd/system/krist.service <<EOF
+cat > /etc/systemd/system/bckn.service <<EOF
 [Unit]
-Description=Krist Server
+Description=Bckn Server
 After=network.target mariadb.service redis-server.service
 Requires=mariadb.service redis-server.service
 
 [Service]
 Type=simple
-User=${KRIST_USER}
-WorkingDirectory=${KRIST_DIR}
-ExecStart=/usr/bin/node ${KRIST_DIR}/dist/src/index.js
+User=${BCKN_USER}
+WorkingDirectory=${BCKN_DIR}
+ExecStart=/usr/bin/node ${BCKN_DIR}/dist/src/index.js
 Restart=always
 RestartSec=10
 StandardOutput=journal
 StandardError=journal
-SyslogIdentifier=krist
+SyslogIdentifier=bckn
 
 # Security
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
-ReadWritePaths=${KRIST_DIR}
+ReadWritePaths=${BCKN_DIR}
 
 # Environment
 Environment="NODE_ENV=production"
@@ -345,7 +345,7 @@ server {
 
     # Temporary response while setting up
     location / {
-        return 200 'Krist server is being configured...';
+        return 200 'Bckn server is being configured...';
         add_header Content-Type text/plain;
     }
 }
@@ -435,7 +435,7 @@ server {
     error_log /var/log/nginx/bckn.dev.error.log;
 
     # Root directory
-    root /home/krist/krist-server/static;
+    root /home/bckn/bckn-server/static;
 
     # Static files with caching
     location ~ ^/(style\.css|favicon\.ico|logo2\.svg|down\.html|.*\.(png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot))$ {
@@ -446,7 +446,7 @@ server {
 
     # API Documentation
     location /docs {
-        alias /home/krist/krist-server/static/docs;
+        alias /home/bckn/bckn-server/static/docs;
         try_files $uri $uri/ /docs/index.html;
     }
 
@@ -542,7 +542,7 @@ server {
     # Error page
     error_page 502 503 504 /down.html;
     location = /down.html {
-        root /home/krist/krist-server/static;
+        root /home/bckn/bckn-server/static;
         internal;
     }
 
@@ -573,7 +573,7 @@ server {
     # Root endpoint
     location / {
         default_type application/json;
-        return 200 '{"ok":true,"ws_url":"wss://ws.bckn.dev/ws/gateway","motd":"Welcome to Krist!"}';
+        return 200 '{"ok":true,"ws_url":"wss://ws.bckn.dev/ws/gateway","motd":"Welcome to Bckn!"}';
         add_header 'Access-Control-Allow-Origin' '*' always;
     }
 }
@@ -609,20 +609,20 @@ check_status "Fail2ban configuration"
 
 # Generate API documentation
 echo -e "${YELLOW}Generating API documentation...${NC}"
-cd ${KRIST_DIR}
-sudo -u ${KRIST_USER} pnpm run docs || echo -e "${YELLOW}API docs generation skipped (optional)${NC}"
+cd ${BCKN_DIR}
+sudo -u ${BCKN_USER} pnpm run docs || echo -e "${YELLOW}API docs generation skipped (optional)${NC}"
 
-# Start Krist service
-echo -e "${YELLOW}Starting Krist service...${NC}"
-systemctl enable krist
-systemctl start krist
-check_status "Krist service startup"
+# Start Bckn service
+echo -e "${YELLOW}Starting Bckn service...${NC}"
+systemctl enable bckn
+systemctl start bckn
+check_status "Bckn service startup"
 
-# Wait for Krist to start
-echo -e "${YELLOW}Waiting for Krist to initialize...${NC}"
+# Wait for Bckn to start
+echo -e "${YELLOW}Waiting for Bckn to initialize...${NC}"
 for i in {1..30}; do
     if curl -s http://localhost:8080 >/dev/null 2>&1; then
-        echo -e "${GREEN}Krist is responding${NC}"
+        echo -e "${GREEN}Bckn is responding${NC}"
         break
     fi
     sleep 1
@@ -630,26 +630,26 @@ done
 
 # Create backup script
 echo -e "${YELLOW}Creating backup script...${NC}"
-cat > /home/${KRIST_USER}/backup-krist.sh <<'BACKUP'
+cat > /home/${BCKN_USER}/backup-bckn.sh <<'BACKUP'
 #!/bin/bash
-BACKUP_DIR="/home/krist/backups"
+BACKUP_DIR="/home/bckn/backups"
 DATE=$(date +%Y%m%d_%H%M%S)
 mkdir -p $BACKUP_DIR
 
 # Backup database
-DB_PASS=$(grep DB_PASS /home/krist/krist-server/.env | cut -d= -f2)
-mysqldump -u krist -p$DB_PASS krist | gzip > $BACKUP_DIR/krist_db_$DATE.sql.gz
+DB_PASS=$(grep DB_PASS /home/bckn/bckn-server/.env | cut -d= -f2)
+mysqldump -u bckn -p$DB_PASS bckn | gzip > $BACKUP_DIR/bckn_db_$DATE.sql.gz
 
 # Keep only last 7 days
-find $BACKUP_DIR -name "krist_db_*.sql.gz" -mtime +7 -delete
+find $BACKUP_DIR -name "bckn_db_*.sql.gz" -mtime +7 -delete
 BACKUP
 
-chmod +x /home/${KRIST_USER}/backup-krist.sh
-chown ${KRIST_USER}:${KRIST_USER} /home/${KRIST_USER}/backup-krist.sh
+chmod +x /home/${BCKN_USER}/backup-bckn.sh
+chown ${BCKN_USER}:${BCKN_USER} /home/${BCKN_USER}/backup-bckn.sh
 
 # Setup daily backup cron
 echo -e "${YELLOW}Setting up automatic backups...${NC}"
-(crontab -u ${KRIST_USER} -l 2>/dev/null || true; echo "0 3 * * * /home/krist/backup-krist.sh") | crontab -u ${KRIST_USER} -
+(crontab -u ${BCKN_USER} -l 2>/dev/null || true; echo "0 3 * * * /home/bckn/backup-bckn.sh") | crontab -u ${BCKN_USER} -
 check_status "Backup configuration"
 
 # Setup auto-renewal for SSL certificates
@@ -659,15 +659,15 @@ check_status "SSL auto-renewal"
 
 # Save credentials
 echo -e "${YELLOW}Saving credentials...${NC}"
-cat > /root/krist-credentials.txt <<EOF
-=== Krist Server Credentials ===
+cat > /root/bckn-credentials.txt <<EOF
+=== Bckn Server Credentials ===
 Generated on: $(date)
 
 Database:
   Host: localhost
-  Database: krist
-  User: krist
-  Password: ${DB_KRIST_PASS}
+  Database: bckn
+  User: bckn
+  Password: ${DB_BCKN_PASS}
   Root Password: ${DB_ROOT_PASS}
 
 Redis:
@@ -686,20 +686,20 @@ URLs:
   API Docs: https://${DOMAIN}/docs
 
 Commands:
-  View logs: journalctl -u krist -f
-  Restart: systemctl restart krist
-  Status: systemctl status krist
-  Edit config: nano ${KRIST_DIR}/.env
-  Backup now: /home/krist/backup-krist.sh
+  View logs: journalctl -u bckn -f
+  Restart: systemctl restart bckn
+  Status: systemctl status bckn
+  Edit config: nano ${BCKN_DIR}/.env
+  Backup now: /home/bckn/backup-bckn.sh
 EOF
-chmod 600 /root/krist-credentials.txt
+chmod 600 /root/bckn-credentials.txt
 
 # Final status check
 echo ""
 echo -e "${GREEN}=== Setup Complete! ===${NC}"
 echo ""
 echo -e "${YELLOW}Checking service status...${NC}"
-systemctl status krist --no-pager | head -n 5 || true
+systemctl status bckn --no-pager | head -n 5 || true
 echo ""
 echo -e "${YELLOW}Testing endpoints...${NC}"
 echo -n "Main site: "
@@ -715,11 +715,11 @@ else
     echo -e "${YELLOW}Still initializing...${NC}"
 fi
 echo ""
-echo -e "${RED}IMPORTANT: Credentials saved to /root/krist-credentials.txt${NC}"
-echo -e "${GREEN}Your Krist server is now running at https://${DOMAIN}${NC}"
+echo -e "${RED}IMPORTANT: Credentials saved to /root/bckn-credentials.txt${NC}"
+echo -e "${GREEN}Your Bckn server is now running at https://${DOMAIN}${NC}"
 echo ""
 echo -e "${YELLOW}Next steps:${NC}"
-echo "1. Check the logs: journalctl -u krist -f"
+echo "1. Check the logs: journalctl -u bckn -f"
 echo "2. Visit https://${DOMAIN} in your browser"
-echo "3. Save the credentials from /root/krist-credentials.txt"
+echo "3. Save the credentials from /root/bckn-credentials.txt"
 echo ""

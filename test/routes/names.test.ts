@@ -91,7 +91,7 @@ describe("v2 routes: names", function() {
     });
 
     it("should reject names with invalid characters", async function() {
-      const invalidNames = ["test.kst", " ", "te st", "_"];
+      const invalidNames = ["test.bacon", " ", "te st", "_"];
       for (const name of invalidNames) {
         const res = await api()
           .post("/names/" + encodeURIComponent(name))
@@ -112,10 +112,10 @@ describe("v2 routes: names", function() {
     });
 
     it("should reject names that already exist", async function() {
-      const name = await Name.create({ name: "test2", owner: "k8juvewcui", original_owner: "k8juvewcui",
+      const name = await Name.create({ name: "test2", owner: "bv8c78oh67", original_owner: "bv8c78oh67",
         registered: new Date(), unpaid: 0 });
       expect(name).to.exist;
-      expect(name).to.deep.include({ name: "test2", owner: "k8juvewcui" });
+      expect(name).to.deep.include({ name: "test2", owner: "bv8c78oh67" });
 
       const res = await api()
         .post("/names/test2")
@@ -150,7 +150,7 @@ describe("v2 routes: names", function() {
     it("should exist in the database", async function() {
       const name = await Name.findOne();
       expect(name).to.exist;
-      expect(name).to.deep.include({ name: "test", owner: "k0duvsr4qn", unpaid: 500, original_owner: "k0duvsr4qn" });
+      expect(name).to.deep.include({ name: "test", owner: "bw0zvuz4zn", unpaid: 500, original_owner: "bw0zvuz4zn" });
       expect(name!.registered).to.be.ok;
       expect(name!.updated).to.be.ok;
       expect(name!.transferred).to.be.null;
@@ -159,11 +159,11 @@ describe("v2 routes: names", function() {
     it("should have created a transaction", async function() {
       const tx = await Transaction.findOne({ order: [["id", "DESC"]] });
       expect(tx).to.exist;
-      expect(tx).to.deep.include({ from: "k0duvsr4qn", to: "name", name: "test", value: 500 });
+      expect(tx).to.deep.include({ from: "bw0zvuz4zn", to: "name", name: "test", value: 500 });
     });
 
     it("should have decreased the buyer's balance", async function() {
-      const address = await Address.findOne({ where: { address: "k0duvsr4qn" }});
+      const address = await Address.findOne({ where: { address: "bw0zvuz4zn" }});
       expect(address).to.exist;
       expect(address).to.deep.include({ balance: 24500 });
     });
@@ -185,7 +185,7 @@ describe("v2 routes: names", function() {
 
       const tx = await Transaction.findOne({ order: [["id", "DESC"]] });
       expect(tx).to.exist;
-      expect(tx).to.deep.include({ from: "k0duvsr4qn", to: "name", name: "testuppercase", value: 500 });
+      expect(tx).to.deep.include({ from: "bw0zvuz4zn", to: "name", name: "testuppercase", value: 500 });
     });
   });
 
@@ -208,7 +208,7 @@ describe("v2 routes: names", function() {
     it("should reject invalid names", async function() {
       const res = await api()
         .post("/names/" + ("a".repeat(65)) + "/transfer")
-        .send({ privatekey: "a", address: "k8juvewcui" });
+        .send({ privatekey: "a", address: "bv8c78oh67" });
 
       expect(res).to.be.json;
       expect(res.body).to.deep.include({ ok: false, error: "invalid_parameter", parameter: "name" });
@@ -235,7 +235,7 @@ describe("v2 routes: names", function() {
     it("should not transfer a name when auth fails", async function() {
       const res = await api()
         .post("/names/test/transfer")
-        .send({ privatekey: "c", address: "k8juvewcui" });
+        .send({ privatekey: "c", address: "bv8c78oh67" });
 
       expect(res).to.be.json;
       expect(res.body).to.deep.include({ ok: false, error: "auth_failed" });
@@ -244,7 +244,7 @@ describe("v2 routes: names", function() {
     it("should reject when the name does not exist", async function() {
       const res = await api()
         .post("/names/notfound/transfer")
-        .send({ privatekey: "d", address: "k8juvewcui" });
+        .send({ privatekey: "d", address: "bv8c78oh67" });
 
       expect(res).to.be.json;
       expect(res.body).to.deep.include({ ok: false, error: "name_not_found" });
@@ -253,7 +253,7 @@ describe("v2 routes: names", function() {
     it("should reject when not the owner of the name", async function() {
       const res = await api()
         .post("/names/test/transfer")
-        .send({ privatekey: "a", address: "k8juvewcui" });
+        .send({ privatekey: "a", address: "bv8c78oh67" });
 
       expect(res).to.be.json;
       expect(res.body).to.deep.include({ ok: false, error: "not_name_owner" });
@@ -264,11 +264,11 @@ describe("v2 routes: names", function() {
     it("should transfer a name", async function() {
       const res = await api()
         .post("/names/test/transfer")
-        .send({ privatekey: "d", address: "k8juvewcui" });
+        .send({ privatekey: "d", address: "bv8c78oh67" });
 
       expect(res).to.be.json;
       expect(res.body).to.deep.include({ ok: true });
-      expect(res.body.name).to.deep.include({ name: "test", owner: "k8juvewcui", original_owner: "k0duvsr4qn" });
+      expect(res.body.name).to.deep.include({ name: "test", owner: "bv8c78oh67", original_owner: "bw0zvuz4zn" });
       expect(res.body.name.updated).to.be.ok;
       expect(res.body.name.transferred).to.be.ok;
     });
@@ -276,24 +276,24 @@ describe("v2 routes: names", function() {
     it("should have updated the database", async function() {
       const name = await Name.findOne({ where: { name: "test" }});
       expect(name).to.exist;
-      expect(name).to.deep.include({ name: "test", owner: "k8juvewcui", original_owner: "k0duvsr4qn" });
+      expect(name).to.deep.include({ name: "test", owner: "bv8c78oh67", original_owner: "bw0zvuz4zn" });
       expect(name!.updated).to.be.ok;
     });
 
     it("should have created a transaction", async function() {
       const tx = await Transaction.findOne({ order: [["id", "DESC"]] });
       expect(tx).to.exist;
-      expect(tx).to.deep.include({ from: "k0duvsr4qn", to: "k8juvewcui", name: "test", value: 0 });
+      expect(tx).to.deep.include({ from: "bw0zvuz4zn", to: "bv8c78oh67", name: "test", value: 0 });
     });
 
     it("should not have changed the old owner's balance", async function() {
-      const address = await Address.findOne({ where: { address: "k0duvsr4qn" }});
+      const address = await Address.findOne({ where: { address: "bw0zvuz4zn" }});
       expect(address).to.exist;
       expect(address).to.deep.include({ balance: 24000 });
     });
 
     it("should not have changed the new owner's balance", async function() {
-      const address = await Address.findOne({ where: { address: "k8juvewcui" }});
+      const address = await Address.findOne({ where: { address: "bv8c78oh67" }});
       expect(address).to.exist;
       expect(address).to.deep.include({ balance: 10 });
     });
@@ -307,11 +307,11 @@ describe("v2 routes: names", function() {
 
       const res = await api()
         .post("/names/test/transfer")
-        .send({ privatekey: "a", address: "k8juvewcui" });
+        .send({ privatekey: "a", address: "bv8c78oh67" });
 
       expect(res).to.be.json;
       expect(res.body).to.deep.include({ ok: true });
-      expect(res.body.name).to.deep.include({ name: "test", owner: "k8juvewcui", original_owner: "k0duvsr4qn" });
+      expect(res.body.name).to.deep.include({ name: "test", owner: "bv8c78oh67", original_owner: "bw0zvuz4zn" });
       expect(res.body.name.updated).to.equal(oldUpdated!.toISOString());
       expect(res.body.name.transferred).to.equal(oldTransferred!.toISOString());
     });
@@ -319,7 +319,7 @@ describe("v2 routes: names", function() {
     it("should not have created a transaction", async function() {
       const tx = await Transaction.findOne({ order: [["id", "DESC"]] });
       expect(tx).to.exist;
-      expect(tx).to.deep.include({ from: "k0duvsr4qn", to: "k8juvewcui", name: "test", value: 0 });
+      expect(tx).to.deep.include({ from: "bw0zvuz4zn", to: "bv8c78oh67", name: "test", value: 0 });
     });
   });
 
@@ -339,7 +339,7 @@ describe("v2 routes: names", function() {
     });
 
     it("should reject names with invalid characters", async function() {
-      const invalidNames = ["test.kst", " ", "te st", "_"];
+      const invalidNames = ["test.bacon", " ", "te st", "_"];
       for (const name of invalidNames) {
         const res = await api()[method]("/names/" + encodeURIComponent(name) + route)
           .send({ privatekey: "a" });
@@ -370,7 +370,7 @@ describe("v2 routes: names", function() {
 
     it("should reject when the name does not exist", async function() {
       const res = await api()[method]("/names/notfound" + route)
-        .send({ privatekey: "d", address: "k8juvewcui" });
+        .send({ privatekey: "d", address: "bv8c78oh67" });
 
       expect(res).to.be.json;
       expect(res.body).to.deep.include({ ok: false, error: "name_not_found" });
@@ -378,7 +378,7 @@ describe("v2 routes: names", function() {
 
     it("should reject when not the owner of the name", async function() {
       const res = await api()[method]("/names/test" + route)
-        .send({ privatekey: "b", address: "k8juvewcui" });
+        .send({ privatekey: "b", address: "bv8c78oh67" });
 
       expect(res).to.be.json;
       expect(res.body).to.deep.include({ ok: false, error: "not_name_owner" });
@@ -392,26 +392,26 @@ describe("v2 routes: names", function() {
 
       expect(res).to.be.json;
       expect(res.body).to.deep.include({ ok: true });
-      expect(res.body.name).to.deep.include({ name: "test", owner: "k8juvewcui", a: "example.com", original_owner: "k0duvsr4qn" });
+      expect(res.body.name).to.deep.include({ name: "test", owner: "bv8c78oh67", a: "example.com", original_owner: "bw0zvuz4zn" });
       expect(res.body.name.updated).to.be.ok;
     });
 
     it("should exist in the database", async function() {
       const name = await Name.findOne();
       expect(name).to.exist;
-      expect(name).to.deep.include({ name: "test", owner: "k8juvewcui", a: "example.com", original_owner: "k0duvsr4qn" });
+      expect(name).to.deep.include({ name: "test", owner: "bv8c78oh67", a: "example.com", original_owner: "bw0zvuz4zn" });
     });
 
     let tId = -1;
     it("should have created a transaction", async function() {
       const tx = await Transaction.findOne({ order: [["id", "DESC"]] });
       expect(tx).to.exist;
-      expect(tx).to.deep.include({ from: "k8juvewcui", to: "a", name: "test", op: "example.com", value: 0 });
+      expect(tx).to.deep.include({ from: "bv8c78oh67", to: "a", name: "test", op: "example.com", value: 0 });
       tId = tx!.id;
     });
 
     it("should not have changed the owner's balance", async function() {
-      const address = await Address.findOne({ where: { address: "k8juvewcui" }});
+      const address = await Address.findOne({ where: { address: "bv8c78oh67" }});
       expect(address).to.exist;
       expect(address).to.deep.include({ balance: 10 });
     });
@@ -426,7 +426,7 @@ describe("v2 routes: names", function() {
 
       expect(res).to.be.json;
       expect(res.body).to.deep.include({ ok: true });
-      expect(res.body.name).to.deep.include({ name: "test", owner: "k8juvewcui", a: "example.com", original_owner: "k0duvsr4qn" });
+      expect(res.body.name).to.deep.include({ name: "test", owner: "bv8c78oh67", a: "example.com", original_owner: "bw0zvuz4zn" });
       expect(res.body.name.updated).to.equal(oldUpdated!.toISOString());
     });
 
@@ -442,24 +442,24 @@ describe("v2 routes: names", function() {
 
       expect(res).to.be.json;
       expect(res.body).to.deep.include({ ok: true });
-      expect(res.body.name).to.deep.include({ name: "test", owner: "k8juvewcui", a: null });
+      expect(res.body.name).to.deep.include({ name: "test", owner: "bv8c78oh67", a: null });
       expect(res.body.name.updated).to.be.ok;
     });
 
     it("should exist in the database", async function() {
       const name = await Name.findOne();
       expect(name).to.exist;
-      expect(name).to.deep.include({ name: "test", owner: "k8juvewcui", a: null });
+      expect(name).to.deep.include({ name: "test", owner: "bv8c78oh67", a: null });
     });
 
     it("should have created a transaction", async function() {
       const tx = await Transaction.findOne({ order: [["id", "DESC"]] });
       expect(tx).to.exist;
-      expect(tx).to.deep.include({ from: "k8juvewcui", to: "a", name: "test", op: null, value: 0 });
+      expect(tx).to.deep.include({ from: "bv8c78oh67", to: "a", name: "test", op: null, value: 0 });
     });
 
     it("should not have changed the owner's balance", async function() {
-      const address = await Address.findOne({ where: { address: "k8juvewcui" }});
+      const address = await Address.findOne({ where: { address: "bv8c78oh67" }});
       expect(address).to.exist;
       expect(address).to.deep.include({ balance: 10 });
     });
@@ -470,7 +470,7 @@ describe("v2 routes: names", function() {
 
       expect(res).to.be.json;
       expect(res.body).to.deep.include({ ok: true });
-      expect(res.body.name).to.deep.include({ name: "test", owner: "k8juvewcui", a: null });
+      expect(res.body.name).to.deep.include({ name: "test", owner: "bv8c78oh67", a: null });
       expect(res.body.name.updated).to.be.ok;
     });
 
@@ -482,7 +482,7 @@ describe("v2 routes: names", function() {
 
         expect(res).to.be.json;
         expect(res.body).to.deep.include({ ok: true });
-        expect(res.body.name).to.deep.include({ name: "test", owner: "k8juvewcui", a: "foo" });
+        expect(res.body.name).to.deep.include({ name: "test", owner: "bv8c78oh67", a: "foo" });
       });
     }
   };

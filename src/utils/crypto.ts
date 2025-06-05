@@ -41,7 +41,7 @@ export function hexToBase36(input: number): string {
   return String.fromCharCode(byte + 39 > 122 ? 101 : byte > 57 ? byte + 39 : byte);
 }
 
-export function makeV2Address(key: string, addressPrefix = "k"): string {
+export function makeV2Address(key: string, addressPrefix = "b"): string {
   const chars = ["", "", "", "", "", "", "", "", ""];
   let chain = addressPrefix;
   let hash = doubleSha256(key);

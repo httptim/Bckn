@@ -21,6 +21,6 @@
 
 import { Address } from "../database/index.js";
 
-export async function getKristSupply(): Promise<number> {
+export async function getBcknSupply(): Promise<number> {
   return Address.sum("balance");
 }

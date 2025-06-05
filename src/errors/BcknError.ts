@@ -19,7 +19,7 @@
  * For more project information, see <https://github.com/tmpim/krist>.
  */
 
-export class KristError<InfoT = never> extends Error {
+export class BcknError<InfoT = never> extends Error {
   constructor(
     message: string,
     public errorString: string = message,

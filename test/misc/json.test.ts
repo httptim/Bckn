@@ -33,7 +33,7 @@ describe("schema to json", function() {
     it("should convert a database transaction to json", async function() {
       const time = new Date();
       const tx = await Transaction.create({
-        id: 1, from: "k8juvewcui", to: "k7oax47quv", value: 1,
+        id: 1, from: "bv8c78oh67", to: "bu1sdlbvwh", value: 1,
         time, name: null, op: null
       });
 
@@ -41,7 +41,7 @@ describe("schema to json", function() {
 
       expect(out).to.be.an("object");
       expect(out).to.deep.include({
-        id: 1, from: "k8juvewcui", to: "k7oax47quv", value: 1,
+        id: 1, from: "bv8c78oh67", to: "bu1sdlbvwh", value: 1,
         time: time.toISOString(), type: "transfer"
       });
     });

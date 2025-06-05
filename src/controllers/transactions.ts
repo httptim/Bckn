@@ -39,7 +39,7 @@ import { getName } from "../krist/names/index.js";
 import { areTransactionsEnabled } from "../krist/switches.js";
 import { logTransaction, pushTransaction } from "../krist/transactions/create.js";
 import { getTransaction, getTransactions, getTransactionsByAddress } from "../krist/transactions/index.js";
-import { isValidKristAddress, METANAME_METADATA_RE, NAME_META_RE, REQUEST_ID_RE, validateLimitOffset } from "../utils/index.js";
+import { isValidBcknAddress, METANAME_METADATA_RE, NAME_META_RE, REQUEST_ID_RE, validateLimitOffset } from "../utils/index.js";
 import { checkTxRateLimits } from "../utils/rateLimit.js";
 
 export async function ctrlGetTransactions(
@@ -59,7 +59,7 @@ export async function ctrlGetTransactionsByAddress(
   includeMined?: boolean
 ): Promise<PaginatedResult<Transaction>> {
   if (!address) throw new ErrorMissingParameter("address");
-  if (!isValidKristAddress(address)) throw new ErrorInvalidParameter("address");
+  if (!isValidBcknAddress(address)) throw new ErrorInvalidParameter("address");
 
   await validateLimitOffset(limit, offset);
 
@@ -117,7 +117,7 @@ export async function ctrlMakeTransaction(
     ? METANAME_METADATA_RE.exec(metadata) : undefined;
 
   // Verify this is a valid v2 address
-  if (!isName && !isValidKristAddress(recipient, true))
+  if (!isName && !isValidBcknAddress(recipient, true))
     throw new ErrorInvalidParameter("to");
 
   const amount = typeof rawAmount === "string"

@@ -44,7 +44,7 @@ export default (): Router => {
 	 * @apiSuccessExample {json} Success
 	 * {
 	 *     "ok": true,
-	 *     "address": "kre3w0i79j"
+	 *     "address": "b70dxcdr3n"
      * }
 	 */
   router.post("/v2", (req, res) => {

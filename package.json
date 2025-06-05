@@ -1,7 +1,7 @@
 {
-  "name": "krist",
+  "name": "bckn",
   "version": "3.5.6",
-  "description": "The new Krist node written in TypeScript.",
+  "description": "The new Bckn node written in TypeScript.",
   "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.json",
@@ -16,14 +16,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/tmpim/Krist"
+    "url": "https://github.com/tmpim/Bckn"
   },
   "author": "Lemmmy",
   "license": "GPL-3.0",
   "bugs": {
-    "url": "https://github.com/tmpim/Krist/issues"
+    "url": "https://github.com/tmpim/Bckn/issues"
   },
-  "homepage": "https://github.com/tmpim/Krist",
+  "homepage": "https://github.com/tmpim/Bckn",
   "dependencies": {
     "@octokit/rest": "^20.1.1",
     "@sequelize/core": "7.0.0-alpha.41",
@@ -98,9 +98,9 @@
     "websocket-as-promised": "^2.0.1"
   },
   "apidoc": {
-    "title": "Krist",
-    "url": "https://krist.dev",
-    "description": "This is the documentation for the new Krist API.",
+    "title": "Bckn",
+    "url": "https://bckn.dev",
+    "description": "This is the documentation for the new Bckn API.",
     "order": [
       "AddressGroup",
       "GetAddress",

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Krist is a cryptocurrency node implementation designed for Minecraft servers, written in TypeScript/Node.js. It provides an API-based system for addresses, blocks, transactions, and a domain-like naming system.
+Bckn is a cryptocurrency node implementation designed for Minecraft servers, written in TypeScript/Node.js. It provides an API-based system for addresses, blocks, transactions, and a domain-like naming system.
 
 ## Development Commands
 

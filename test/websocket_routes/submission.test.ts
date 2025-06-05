@@ -56,7 +56,7 @@ describe("websocket routes: submission", function() {
     });
 
     it("should fail if mining is disabled", async function() {
-      const [res, ws] = await send({ address: "k8juvewcui" });
+      const [res, ws] = await send({ address: "bv8c78oh67" });
       expect(res).to.deep.include({ ok: false, error: "mining_disabled" });
       ws.close();
     });
@@ -79,25 +79,25 @@ describe("websocket routes: submission", function() {
     });
 
     it("should require a nonce", async () => {
-      const [res, ws] = await send({ address: "k8juvewcui" });
+      const [res, ws] = await send({ address: "bv8c78oh67" });
       expect(res).to.deep.include({ ok: false, error: "missing_parameter", parameter: "nonce" });
       ws.close();
     });
 
     it("should reject long nonces", async () => {
-      const [res, ws] = await send({ address: "k8juvewcui", nonce: "a".repeat(25) });
+      const [res, ws] = await send({ address: "bv8c78oh67", nonce: "a".repeat(25) });
       expect(res).to.deep.include({ ok: false, error: "invalid_parameter", parameter: "nonce" });
       ws.close();
     });
 
     it("should support binary nonces", async () => {
-      const [res, ws] = await send({ address: "k8juvewcui", nonce: [1, 2, 3] });
+      const [res, ws] = await send({ address: "bv8c78oh67", nonce: [1, 2, 3] });
       expect(res).to.deep.include({ ok: true, success: false });
       ws.close();
     });
 
     it("should reject an invalid block", async () => {
-      const [res, ws] = await send({ address: "k8juvewcui", nonce: "invalid" });
+      const [res, ws] = await send({ address: "bv8c78oh67", nonce: "invalid" });
       expect(res).to.deep.include({ ok: true, success: false });
       ws.close();
     });
@@ -107,11 +107,11 @@ describe("websocket routes: submission", function() {
   describe("submit_block", function() {
     /*
     it("should submit a block", async () => {
-      const [res, ws] = await send({ address: "k8juvewcui", nonce: "%#DEQ'#+UX)" });
+      const [res, ws] = await send({ address: "bv8c78oh67", nonce: "%#DEQ'#+UX)" });
       expect(res).to.deep.include({ ok: true, success: true });
 
       expect(res.address).to.be.an("object");
-      expect(res.address).to.deep.include({ address: "k8juvewcui", balance: 35 });
+      expect(res.address).to.deep.include({ address: "bv8c78oh67", balance: 35 });
 
       expect(res.block).to.be.an("object");
       expect(res.block).to.deep.include({
@@ -136,7 +136,7 @@ describe("websocket routes: submission", function() {
     });
 
     it("should have updated the miner's balance", async () => {
-      const address = await Address.findOne({ where: { address: "k8juvewcui" } });
+      const address = await Address.findOne({ where: { address: "bv8c78oh67" } });
       expect(address).to.exist;
       expect(address!.balance).to.equal(35);
     });
@@ -165,7 +165,7 @@ describe("websocket routes: submission", function() {
       expect(block.hash).to.equal("0000000000000000000000000000000000000000000000000000000000000000");
 
       // Submit the duplicate block hash
-      const [res, ws] = await send({ address: "k8juvewcui", nonce: "%#DEQ'#+UX)" });
+      const [res, ws] = await send({ address: "bv8c78oh67", nonce: "%#DEQ'#+UX)" });
       expect(res).to.deep.include({ ok: true, success: false, error: "solution_duplicate" });
       ws.close();
     });
@@ -173,7 +173,7 @@ describe("websocket routes: submission", function() {
     it("should reset the database", seed);
 
     it("should submit a block with a binary nonce", async () => {
-      const [res, ws] = await send({ address: "k8juvewcui", nonce: [37,35,68,69,81,39,35,43,85,88,41] });
+      const [res, ws] = await send({ address: "bv8c78oh67", nonce: [37,35,68,69,81,39,35,43,85,88,41] });
       expect(res).to.deep.include({ ok: true, success: true });
 
       expect(res.block).to.be.an("object");
@@ -188,11 +188,11 @@ describe("websocket routes: submission", function() {
     it("should reset the database", seed);
 
     it("should decrease unpaid names", async () => {
-      const name = await Name.create({ name: "test", owner: "k0duvsr4qn", registered: new Date(), unpaid: 500 });
+      const name = await Name.create({ name: "test", owner: "bw0zvuz4zn", registered: new Date(), unpaid: 500 });
       expect(name).to.exist;
-      expect(name).to.deep.include({ name: "test", owner: "k0duvsr4qn", unpaid: 500 });
+      expect(name).to.deep.include({ name: "test", owner: "bw0zvuz4zn", unpaid: 500 });
 
-      const [res, ws] = await send({ address: "k8juvewcui", nonce: "%#DEQ'#+UX)" });
+      const [res, ws] = await send({ address: "bv8c78oh67", nonce: "%#DEQ'#+UX)" });
       expect(res).to.deep.include({ ok: true, success: true });
 
       expect(res.block).to.deep.include({ height: 2, value: 26 });
@@ -211,7 +211,7 @@ describe("websocket routes: submission", function() {
       expect(res).to.deep.include({ ok: true, success: true });
 
       expect(res.address).to.be.an("object");
-      expect(res.address).to.deep.include({ address: "k8juvewcui", balance: 35 });
+      expect(res.address).to.deep.include({ address: "bv8c78oh67", balance: 35 });
 
       expect(res.block).to.be.an("object");
       expect(res.block).to.deep.include({
@@ -227,11 +227,11 @@ describe("websocket routes: submission", function() {
     it("should reset the database", seed);
 
     it("should submit a block as another address when authed", async () => {
-      const [res, ws] = await send({ address: "k8juvewcui", nonce: "%#DEQ'#+UX)" }, "d");
+      const [res, ws] = await send({ address: "bv8c78oh67", nonce: "%#DEQ'#+UX)" }, "d");
       expect(res).to.deep.include({ ok: true, success: true });
 
       expect(res.address).to.be.an("object");
-      expect(res.address).to.deep.include({ address: "k8juvewcui", balance: 35 });
+      expect(res.address).to.deep.include({ address: "bv8c78oh67", balance: 35 });
 
       expect(res.block).to.be.an("object");
       expect(res.block).to.deep.include({

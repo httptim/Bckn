@@ -55,11 +55,11 @@ describe("v2 routes: login", function() {
     it("should auth v2 addresses successfully", async function() {
       const res = await api().post("/login").send({ privatekey: "a" });
       expect(res).to.be.json;
-      expect(res.body).to.deep.include({ ok: true, authed: true, address: "k8juvewcui" });
+      expect(res.body).to.deep.include({ ok: true, authed: true, address: "bv8c78oh67" });
     });
 
     it("should error for locked addresses even without a privatekey", async function() {
-      const address = await Address.findOne({ where: { address: "kwsgj3x184" } });
+      const address = await Address.findOne({ where: { address: "byouf00c9w" } });
       if (!address) throw new Error("Address not found");
 
       const oldPrivatekey = address.privatekey;

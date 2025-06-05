@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Krist Server Docker Setup Script for Digital Ocean Droplet
-# This script sets up Krist using Docker as recommended in the README
+# Bckn Server Docker Setup Script for Digital Ocean Droplet
+# This script sets up Bckn using Docker as recommended in the README
 
 set -e  # Exit on error
 set -o pipefail  # Exit on pipe failure
@@ -18,7 +18,7 @@ DOMAIN="bckn.dev"
 WS_DOMAIN="ws.bckn.dev"
 DOCKER_GATEWAY="172.17.0.1"  # Default Docker gateway
 
-echo -e "${BLUE}=== Krist Server Docker Setup Script ===${NC}"
+echo -e "${BLUE}=== Bckn Server Docker Setup Script ===${NC}"
 echo -e "${BLUE}Domain: ${DOMAIN}${NC}"
 echo -e "${BLUE}WebSocket Domain: ${WS_DOMAIN}${NC}"
 echo -e "${BLUE}Ubuntu Version: $(lsb_release -d | cut -f2)${NC}"
@@ -43,7 +43,7 @@ check_status() {
 # Generate secure passwords
 echo -e "${YELLOW}Generating secure passwords...${NC}"
 DB_ROOT_PASS=$(openssl rand -hex 32)
-DB_KRIST_PASS=$(openssl rand -hex 32)
+DB_BCKN_PASS=$(openssl rand -hex 32)
 REDIS_PASS=$(openssl rand -hex 32)
 PROMETHEUS_PASS=$(openssl rand -hex 16)
 
@@ -120,19 +120,19 @@ DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';
 FLUSH PRIVILEGES;
 EOF
 
-# Create Krist database and user (allow connections from Docker)
-echo -e "${YELLOW}Creating Krist database...${NC}"
+# Create Bckn database and user (allow connections from Docker)
+echo -e "${YELLOW}Creating Bckn database...${NC}"
 mysql -u root -p"${DB_ROOT_PASS}" <<EOF
-CREATE DATABASE IF NOT EXISTS krist CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER IF NOT EXISTS 'krist'@'localhost' IDENTIFIED BY '${DB_KRIST_PASS}';
-CREATE USER IF NOT EXISTS 'krist'@'${DOCKER_GATEWAY}' IDENTIFIED BY '${DB_KRIST_PASS}';
-CREATE USER IF NOT EXISTS 'krist'@'172.%.%.%' IDENTIFIED BY '${DB_KRIST_PASS}';
-GRANT ALL PRIVILEGES ON krist.* TO 'krist'@'localhost';
-GRANT ALL PRIVILEGES ON krist.* TO 'krist'@'${DOCKER_GATEWAY}';
-GRANT ALL PRIVILEGES ON krist.* TO 'krist'@'172.%.%.%';
+CREATE DATABASE IF NOT EXISTS bckn CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER IF NOT EXISTS 'bckn'@'localhost' IDENTIFIED BY '${DB_BCKN_PASS}';
+CREATE USER IF NOT EXISTS 'bckn'@'${DOCKER_GATEWAY}' IDENTIFIED BY '${DB_BCKN_PASS}';
+CREATE USER IF NOT EXISTS 'bckn'@'172.%.%.%' IDENTIFIED BY '${DB_BCKN_PASS}';
+GRANT ALL PRIVILEGES ON bckn.* TO 'bckn'@'localhost';
+GRANT ALL PRIVILEGES ON bckn.* TO 'bckn'@'${DOCKER_GATEWAY}';
+GRANT ALL PRIVILEGES ON bckn.* TO 'bckn'@'172.%.%.%';
 FLUSH PRIVILEGES;
 EOF
-check_status "Krist database creation"
+check_status "Bckn database creation"
 
 # Configure MariaDB to listen on Docker interface
 echo -e "${YELLOW}Configuring MariaDB for Docker access...${NC}"
@@ -148,7 +148,7 @@ check_status "Redis installation"
 # Configure Redis for Docker access
 echo -e "${YELLOW}Configuring Redis...${NC}"
 cat > /etc/redis/redis.conf <<EOF
-# Redis Configuration for Krist
+# Redis Configuration for Bckn
 bind 0.0.0.0 ::
 protected-mode yes
 port 6379
@@ -211,7 +211,7 @@ server {
     }
 
     location / {
-        return 200 'Krist server is being configured...';
+        return 200 'Bckn server is being configured...';
         add_header Content-Type text/plain;
     }
 }
@@ -291,7 +291,7 @@ server {
     access_log /var/log/nginx/bckn.dev.access.log;
     error_log /var/log/nginx/bckn.dev.error.log;
 
-    # Proxy to Krist Docker container
+    # Proxy to Bckn Docker container
     location / {
         proxy_pass http://127.0.0.1:8080;
         proxy_http_version 1.1;
@@ -385,18 +385,18 @@ check_status "Nginx HTTPS configuration"
 
 # Create Docker Compose file
 echo -e "${YELLOW}Creating Docker Compose configuration...${NC}"
-mkdir -p /opt/krist
-cat > /opt/krist/docker-compose.yml <<EOF
+mkdir -p /opt/bckn
+cat > /opt/bckn/docker-compose.yml <<EOF
 version: "3.9"
 services:
-  krist:
-    image: "ghcr.io/tmpim/krist:latest"
-    container_name: krist
+  bckn:
+    image: "ghcr.io/tmpim/bckn:latest"
+    container_name: bckn
     environment:
       - DB_HOST=${DOCKER_GATEWAY}
-      - DB_USER=krist
-      - DB_PASS=${DB_KRIST_PASS}
-      - DB_NAME=krist
+      - DB_USER=bckn
+      - DB_PASS=${DB_BCKN_PASS}
+      - DB_NAME=bckn
       - REDIS_HOST=${DOCKER_GATEWAY}
       - REDIS_PASS=${REDIS_PASS}
       - PUBLIC_URL=${DOMAIN}
@@ -415,18 +415,18 @@ services:
         max-file: "3"
 EOF
 
-# Pull and start Krist
-echo -e "${YELLOW}Starting Krist with Docker...${NC}"
-cd /opt/krist
+# Pull and start Bckn
+echo -e "${YELLOW}Starting Bckn with Docker...${NC}"
+cd /opt/bckn
 docker compose pull
 docker compose up -d
-check_status "Krist Docker startup"
+check_status "Bckn Docker startup"
 
-# Wait for Krist to start
-echo -e "${YELLOW}Waiting for Krist to initialize...${NC}"
+# Wait for Bckn to start
+echo -e "${YELLOW}Waiting for Bckn to initialize...${NC}"
 for i in {1..30}; do
     if curl -s http://localhost:8080 >/dev/null 2>&1; then
-        echo -e "${GREEN}Krist is responding${NC}"
+        echo -e "${GREEN}Bckn is responding${NC}"
         break
     fi
     sleep 1
@@ -451,38 +451,38 @@ check_status "Fail2ban configuration"
 
 # Create backup script
 echo -e "${YELLOW}Creating backup script...${NC}"
-cat > /opt/krist/backup.sh <<EOF
+cat > /opt/bckn/backup.sh <<EOF
 #!/bin/bash
-BACKUP_DIR="/opt/krist/backups"
+BACKUP_DIR="/opt/bckn/backups"
 DATE=\$(date +%Y%m%d_%H%M%S)
 mkdir -p \$BACKUP_DIR
 
 # Backup database
-mysqldump -u krist -p${DB_KRIST_PASS} krist | gzip > \$BACKUP_DIR/krist_db_\$DATE.sql.gz
+mysqldump -u bckn -p${DB_BCKN_PASS} bckn | gzip > \$BACKUP_DIR/bckn_db_\$DATE.sql.gz
 
 # Keep only last 7 days
-find \$BACKUP_DIR -name "krist_db_*.sql.gz" -mtime +7 -delete
+find \$BACKUP_DIR -name "bckn_db_*.sql.gz" -mtime +7 -delete
 EOF
-chmod +x /opt/krist/backup.sh
+chmod +x /opt/bckn/backup.sh
 
 # Setup cron jobs
 echo -e "${YELLOW}Setting up automatic tasks...${NC}"
-(crontab -l 2>/dev/null || true; echo "0 3 * * * /opt/krist/backup.sh") | crontab -
+(crontab -l 2>/dev/null || true; echo "0 3 * * * /opt/bckn/backup.sh") | crontab -
 (crontab -l 2>/dev/null || true; echo "0 0 * * 0 certbot renew --quiet --post-hook 'systemctl reload nginx'") | crontab -
 (crontab -l 2>/dev/null || true; echo "0 4 * * * docker system prune -af --volumes") | crontab -
 check_status "Cron jobs setup"
 
 # Save credentials
 echo -e "${YELLOW}Saving credentials...${NC}"
-cat > /root/krist-credentials.txt <<EOF
-=== Krist Server Credentials ===
+cat > /root/bckn-credentials.txt <<EOF
+=== Bckn Server Credentials ===
 Generated on: $(date)
 
 Database:
   Host: ${DOCKER_GATEWAY} (from Docker container)
-  Database: krist
-  User: krist
-  Password: ${DB_KRIST_PASS}
+  Database: bckn
+  User: bckn
+  Password: ${DB_BCKN_PASS}
   Root Password: ${DB_ROOT_PASS}
 
 Redis:
@@ -501,50 +501,50 @@ URLs:
   API Docs: https://${DOMAIN}/docs
 
 Docker Commands:
-  View logs: docker logs -f krist
-  Restart: docker restart krist
-  Stop: docker stop krist
-  Start: docker start krist
-  Update: cd /opt/krist && docker compose pull && docker compose up -d
+  View logs: docker logs -f bckn
+  Restart: docker restart bckn
+  Stop: docker stop bckn
+  Start: docker start bckn
+  Update: cd /opt/bckn && docker compose pull && docker compose up -d
 
 System Commands:
-  Edit compose: nano /opt/krist/docker-compose.yml
-  Backup now: /opt/krist/backup.sh
+  Edit compose: nano /opt/bckn/docker-compose.yml
+  Backup now: /opt/bckn/backup.sh
   View all logs: journalctl -f
 EOF
-chmod 600 /root/krist-credentials.txt
+chmod 600 /root/bckn-credentials.txt
 
 # Create convenience script
-cat > /usr/local/bin/krist <<'EOF'
+cat > /usr/local/bin/bckn <<'EOF'
 #!/bin/bash
 case "$1" in
     logs)
-        docker logs -f krist
+        docker logs -f bckn
         ;;
     restart)
-        docker restart krist
+        docker restart bckn
         ;;
     stop)
-        docker stop krist
+        docker stop bckn
         ;;
     start)
-        docker start krist
+        docker start bckn
         ;;
     status)
-        docker ps | grep krist
+        docker ps | grep bckn
         ;;
     update)
-        cd /opt/krist
+        cd /opt/bckn
         docker compose pull
         docker compose up -d
         ;;
     *)
-        echo "Usage: krist {logs|restart|stop|start|status|update}"
+        echo "Usage: bckn {logs|restart|stop|start|status|update}"
         exit 1
         ;;
 esac
 EOF
-chmod +x /usr/local/bin/krist
+chmod +x /usr/local/bin/bckn
 
 # Final checks
 echo ""
@@ -552,10 +552,10 @@ echo -e "${GREEN}=== Setup Complete! ===${NC}"
 echo ""
 echo -e "${YELLOW}Checking services...${NC}"
 echo -n "Docker: "
-if docker ps | grep -q krist; then
-    echo -e "${GREEN}✓ Krist container running${NC}"
+if docker ps | grep -q bckn; then
+    echo -e "${GREEN}✓ Bckn container running${NC}"
 else
-    echo -e "${RED}✗ Krist container not running${NC}"
+    echo -e "${RED}✗ Bckn container not running${NC}"
 fi
 echo -n "Main site: "
 if curl -s -o /dev/null -w "%{http_code}" https://${DOMAIN} | grep -q "200\|301\|302"; then
@@ -570,12 +570,12 @@ else
     echo -e "${YELLOW}Still initializing...${NC}"
 fi
 echo ""
-echo -e "${RED}IMPORTANT: Credentials saved to /root/krist-credentials.txt${NC}"
-echo -e "${GREEN}Your Krist server is now running at https://${DOMAIN}${NC}"
+echo -e "${RED}IMPORTANT: Credentials saved to /root/bckn-credentials.txt${NC}"
+echo -e "${GREEN}Your Bckn server is now running at https://${DOMAIN}${NC}"
 echo ""
 echo -e "${YELLOW}Quick commands:${NC}"
-echo "  krist logs     - View Krist logs"
-echo "  krist restart  - Restart Krist"
-echo "  krist status   - Check status"
-echo "  krist update   - Update to latest version"
+echo "  bckn logs     - View Bckn logs"
+echo "  bckn restart  - Restart Bckn"
+echo "  bckn status   - Check status"
+echo "  bckn update   - Update to latest version"
 echo ""

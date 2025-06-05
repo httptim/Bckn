@@ -58,18 +58,18 @@ export default (): Router => {
    *   "transactions": [
    *     {
    *       "id": 892595,
-   *       "from": "khugepoopy",
-   *       "to": "kqxhx5yn9v",
+   *       "from": "bhugepoopy",
+   *       "to": "bqxhx5yn9v",
    *       "value": 7000,
    *       "time": "2018-12-29T13:02:05.000Z",
    *       "name": null,
-   *       "metadata": "lignum@switchcraft.kst",
+   *       "metadata": "lignum@switchcraft.bacon",
    *       "type": "transfer"
    *     },
    *     {
    *       "id": 1454706,
-   *       "from": "k5cfswitch",
-   *       "to": "khugepoopy",
+   *       "from": "b5cfswitch",
+   *       "to": "bhugepoopy",
    *       "value": 5050,
    *       "time": "2020-01-20T00:01:47.000Z",
    *       "name": null,

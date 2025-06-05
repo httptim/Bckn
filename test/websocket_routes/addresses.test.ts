@@ -32,12 +32,12 @@ describe("websocket routes: addresses", function() {
       const ws = await newConnection();
       expect(ws).to.nested.include({ "wsp.isOpened": true });
 
-      const data = await ws.sendAndWait({ type: "address", address: "k8juvewcui" });
+      const data = await ws.sendAndWait({ type: "address", address: "bv8c78oh67" });
       expect(data).to.deep.include({ ok: true });
       expect(data.address).to.be.an("object");
       expect(data.address).to.include.all.keys("address", "balance", "totalin", "totalout", "firstseen");
       expect(data.address).to.not.include.any.keys("id", "privatekey", "alert", "locked");
-      expect(data.address).to.deep.include({ address: "k8juvewcui", balance: 10 });
+      expect(data.address).to.deep.include({ address: "bv8c78oh67", balance: 10 });
 
       ws.close();
     });
@@ -46,7 +46,7 @@ describe("websocket routes: addresses", function() {
       const ws = await newConnection();
       expect(ws).to.nested.include({ "wsp.isOpened": true });
 
-      const data = await ws.sendAndWait({ type: "address", address: "k8juvewcui", fetchNames: true });
+      const data = await ws.sendAndWait({ type: "address", address: "bv8c78oh67", fetchNames: true });
       expect(data).to.deep.include({ ok: true });
       expect(data.address).to.be.an("object");
       expect(data.address.names).to.equal(0);
@@ -58,7 +58,7 @@ describe("websocket routes: addresses", function() {
       const ws = await newConnection();
       expect(ws).to.nested.include({ "wsp.isOpened": true });
 
-      const data = await ws.sendAndWait({ type: "address", address: "knotfound0" });
+      const data = await ws.sendAndWait({ type: "address", address: "bnotfound0" });
       expect(data).to.deep.include({ ok: false, error: "address_not_found" });
 
       ws.close();

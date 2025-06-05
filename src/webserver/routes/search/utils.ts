@@ -20,11 +20,11 @@
  */
 
 import { ErrorInvalidParameter, ErrorMissingParameter } from "../../../errors/index.js";
-import { isValidKristAddress, isValidName, stripNameSuffix } from "../../../utils/index.js";
+import { isValidBcknAddress, isValidName, stripNameSuffix } from "../../../utils/index.js";
 import { ReqSearchQuery, SearchQueryMatch } from "./index.js";
 
 export function parseQuery(query: string): SearchQueryMatch {
-  const matchAddress = isValidKristAddress(query);
+  const matchAddress = isValidBcknAddress(query);
 
   const strippedName = stripNameSuffix(query);
   const matchName = !!strippedName && isValidName(strippedName, true);

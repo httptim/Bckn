@@ -1,18 +1,18 @@
 #!/bin/bash
 
-# Krist Tools - Utility script for Krist operations
+# Bckn Tools - Utility script for Bckn operations
 
-KRIST_NODE="https://bckn.dev"
+BCKN_NODE="https://bckn.dev"
 
 # Function to generate new address
 generate_address() {
-    echo "=== Generate New Krist Address ==="
+    echo "=== Generate New Bckn Address ==="
     
     # Generate random private key (32 chars)
     PRIVATE_KEY=$(openssl rand -base64 32 | tr -d '/+=' | head -c 32)
     
     # Get address from API
-    RESPONSE=$(curl -s -X POST "${KRIST_NODE}/login" \
+    RESPONSE=$(curl -s -X POST "${BCKN_NODE}/login" \
         -H "Content-Type: application/json" \
         -d "{\"privatekey\": \"${PRIVATE_KEY}\"}")
     
@@ -20,7 +20,7 @@ generate_address() {
     
     if [ -n "$ADDRESS" ]; then
         echo ""
-        echo "✅ New Krist Address Generated!"
+        echo "✅ New Bckn Address Generated!"
         echo "================================"
         echo "Private Key: ${PRIVATE_KEY}"
         echo "Address:     ${ADDRESS}"
@@ -41,12 +41,12 @@ check_balance() {
         return
     fi
     
-    RESPONSE=$(curl -s "${KRIST_NODE}/addresses/${1}")
+    RESPONSE=$(curl -s "${BCKN_NODE}/addresses/${1}")
     BALANCE=$(echo "$RESPONSE" | grep -o '"balance":[0-9]*' | cut -d: -f2)
     
     if [ -n "$BALANCE" ]; then
         echo "Address: $1"
-        echo "Balance: ${BALANCE} KST"
+        echo "Balance: ${BALANCE} BCN"
     else
         echo "Error checking balance"
     fi
@@ -54,34 +54,34 @@ check_balance() {
 
 # Function to get current work
 get_work() {
-    RESPONSE=$(curl -s "${KRIST_NODE}/work/detailed")
+    RESPONSE=$(curl -s "${BCKN_NODE}/work/detailed")
     echo "$RESPONSE" | jq '.' 2>/dev/null || echo "$RESPONSE"
 }
 
 # Function to get network info
 network_info() {
-    echo "=== Krist Network Info ==="
+    echo "=== Bckn Network Info ==="
     
     # Get supply
-    SUPPLY=$(curl -s "${KRIST_NODE}/supply")
+    SUPPLY=$(curl -s "${BCKN_NODE}/supply")
     echo "Supply: $SUPPLY"
     
     # Get last block
-    BLOCK=$(curl -s "${KRIST_NODE}/blocks/last" | jq -r '.block.height' 2>/dev/null)
+    BLOCK=$(curl -s "${BCKN_NODE}/blocks/last" | jq -r '.block.height' 2>/dev/null)
     echo "Latest Block: $BLOCK"
     
     # Get work
-    WORK=$(curl -s "${KRIST_NODE}/work")
+    WORK=$(curl -s "${BCKN_NODE}/work")
     echo "Current Work: $WORK"
     
     # Get MOTD
-    MOTD=$(curl -s "${KRIST_NODE}/motd")
+    MOTD=$(curl -s "${BCKN_NODE}/motd")
     echo "MOTD: $MOTD"
 }
 
 # Function to start CPU mining on Mac
 start_mining_mac() {
-    echo "=== Starting Krist Mining on macOS ==="
+    echo "=== Starting Bckn Mining on macOS ==="
     
     # Check if Python 3 is installed
     if ! command -v python3 &> /dev/null; then
@@ -94,17 +94,17 @@ start_mining_mac() {
     pip3 install requests
     
     # Download miner if not exists
-    if [ ! -f "krist-miner-mac.py" ]; then
-        echo "Downloading Krist miner..."
-        curl -O https://raw.githubusercontent.com/httptim/Bckn/master/krist-miner-mac.py
-        chmod +x krist-miner-mac.py
+    if [ ! -f "bckn-miner-mac.py" ]; then
+        echo "Downloading Bckn miner..."
+        curl -O https://raw.githubusercontent.com/httptim/Bckn/master/bckn-miner-mac.py
+        chmod +x bckn-miner-mac.py
     fi
     
     # Run miner
     if [ -n "$1" ]; then
-        python3 krist-miner-mac.py "$1"
+        python3 bckn-miner-mac.py "$1"
     else
-        python3 krist-miner-mac.py
+        python3 bckn-miner-mac.py
     fi
 }
 
@@ -129,11 +129,11 @@ setup_gpu_mining() {
     pip3 install requests numpy cupy-cuda12x pycuda
     
     # Download GPU miner
-    wget https://raw.githubusercontent.com/httptim/Bckn/master/krist-miner-gpu.py
-    chmod +x krist-miner-gpu.py
+    wget https://raw.githubusercontent.com/httptim/Bckn/master/bckn-miner-gpu.py
+    chmod +x bckn-miner-gpu.py
     
     echo "✅ GPU mining setup complete!"
-    echo "Run with: python3 krist-miner-gpu.py <private_key>"
+    echo "Run with: python3 bckn-miner-gpu.py <private_key>"
 }
 
 # Main menu
@@ -157,12 +157,12 @@ case "$1" in
         setup_gpu_mining
         ;;
     *)
-        echo "Krist Tools - Utility script for Krist operations"
+        echo "Bckn Tools - Utility script for Bckn operations"
         echo ""
         echo "Usage: $0 {command} [options]"
         echo ""
         echo "Commands:"
-        echo "  generate         - Generate new Krist address"
+        echo "  generate         - Generate new Bckn address"
         echo "  balance <addr>   - Check balance of address"
         echo "  work            - Get current mining work"
         echo "  info            - Get network information"

@@ -89,7 +89,7 @@ describe("websocket connection", function() {
       if (!helloData) throw new Error("a");
       expect(helloData.ok).to.be.true;
 
-      expect(helloData.motd).to.equal("Welcome to Krist!");
+      expect(helloData.motd).to.equal("Welcome to Bacon!");
       expect(helloData.set).to.be.ok; // backwards compat for the HTTP API
       expect(helloData.motd_set).to.be.ok;
 
@@ -103,7 +103,7 @@ describe("websocket connection", function() {
       expect(helloData.last_block.height).to.equal(1);
 
       expect(helloData.package).to.be.an("object");
-      expect(helloData.package).to.deep.include({ name: "krist", author: "Lemmmy", licence: "GPL-3.0" });
+      expect(helloData.package).to.deep.include({ name: "bckn", author: "Lemmmy", licence: "GPL-3.0" });
       expect(helloData.package.version).to.be.ok;
       expect(helloData.package.repository).to.be.ok;
 
@@ -116,8 +116,8 @@ describe("websocket connection", function() {
 
       expect(helloData.currency).to.be.an("object");
       expect(helloData.currency).to.deep.equal({
-        address_prefix: "k", name_suffix: "kst",
-        currency_name: "Krist", currency_symbol: "KST"
+        address_prefix: "b", name_suffix: "bacon",
+        currency_name: "Bacon", currency_symbol: "BCN"
       });
 
       expect(helloData.notice).to.equal("Krist was originally created by 3d6 and Lemmmy. It is now owned and operated by tmpim, and licensed under GPL-3.0.");

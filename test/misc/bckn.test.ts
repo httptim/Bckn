@@ -1,40 +1,40 @@
 /*
  * Copyright 2016 - 2024 Drew Edwards, tmpim
  *
- * This file is part of Krist.
+ * This file is part of Bckn.
  *
- * Krist is free software: you can redistribute it and/or modify
+ * Bckn is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * Krist is distributed in the hope that it will be useful,
+ * Bckn is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with Krist. If not, see <http://www.gnu.org/licenses/>.
+ * along with Bckn. If not, see <http://www.gnu.org/licenses/>.
  *
- * For more project information, see <https://github.com/tmpim/krist>.
+ * For more project information, see <https://github.com/tmpim/bckn>.
  */
 
 import { expect } from "chai";
-import { isValidKristAddress, isValidName, stripNameSuffix } from "../../src/utils/index.js";
+import { isValidBcknAddress, isValidName, stripNameSuffix } from "../../src/utils/index.js";
 
-describe("krist functions", function() {
-  describe("isValidKristAddress", function() {
-    it("should work for a valid v1 address", async function() { return expect(isValidKristAddress("a5dfb396d3")).to.be.true; });
+describe("bckn functions", function() {
+  describe("isValidBcknAddress", function() {
+    it("should work for a valid v1 address", async function() { return expect(isValidBcknAddress("a5dfb396d3")).to.be.true; });
 
-    it("should work for a valid v2 address", async function() { return expect(isValidKristAddress("k8juvewcui")).to.be.true; });
+    it("should work for a valid v2 address", async function() { return expect(isValidBcknAddress("bv8c78oh67")).to.be.true; });
 
-    it("should fail for an invalid address", async function() { return expect(isValidKristAddress("kfartoolong")).to.be.false; });
+    it("should fail for an invalid address", async function() { return expect(isValidBcknAddress("kfartoolong")).to.be.false; });
 
-    it("should fail for a valid v1 address when v2Only", async function() { return expect(isValidKristAddress("a5dfb396d3", true)).to.be.false; });
+    it("should fail for a valid v1 address when v2Only", async function() { return expect(isValidBcknAddress("a5dfb396d3", true)).to.be.false; });
 
-    it("should work for a valid v2 address when v2Only", async function() { return expect(isValidKristAddress("k8juvewcui", true)).to.be.true; });
+    it("should work for a valid v2 address when v2Only", async function() { return expect(isValidBcknAddress("bv8c78oh67", true)).to.be.true; });
 
-    it("should fail for an invalid address when v2Only", async function() { return expect(isValidKristAddress("kfartoolong", true)).to.be.false; });
+    it("should fail for an invalid address when v2Only", async function() { return expect(isValidBcknAddress("kfartoolong", true)).to.be.false; });
   });
 
   describe("isValidName", function() {
@@ -58,11 +58,11 @@ describe("krist functions", function() {
   });
 
   describe("stripNameSuffix", function() {
-    it("should strip a .kst suffix", async function() { return expect(stripNameSuffix("test.kst")).to.equal("test"); });
+    it("should strip a .bacon suffix", async function() { return expect(stripNameSuffix("test.bacon")).to.equal("test"); });
 
     it("not alter a name without a suffix", async function() { return expect(stripNameSuffix("test")).to.equal("test"); });
 
-    it("should only strip the last suffix", async function() { return expect(stripNameSuffix("test.kst.kst")).to.equal("test.kst"); });
+    it("should only strip the last suffix", async function() { return expect(stripNameSuffix("test.bacon.bacon")).to.equal("test.bacon"); });
 
     it("should not error with an undefined input", async function() { return expect((stripNameSuffix as any)()).to.equal(""); });
   });

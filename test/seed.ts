@@ -50,11 +50,11 @@ export async function seed(): Promise<void> {
 
     // Create some addresses to test with
     Address.bulkCreate([
-      { address: "k8juvewcui", balance: 10, totalin: 0, totalout: 0, firstseen: new Date(), privatekey: "a350fa569fc53804c4282afbebafeba973c33238704815ea41fa8eec1f13a791" },
-      { address: "k7oax47quv", balance: 0, totalin: 0, totalout: 0, firstseen: new Date(), privatekey: "1f71334443b70c5c384894bc6308e9fcfb5b3103abb82eba6cd26d7767b5740c" },
-      { address: "kwsgj3x184", balance: 0, totalin: 0, totalout: 0, firstseen: new Date(), privatekey: "75185375f6e1e0eecbbe875355de2e38b7e548efbc80985479f5870967dcd2df", alert: "Test alert", locked: true },
-      { address: "k0duvsr4qn", balance: 25000, totalin: 0, totalout: 0, firstseen: new Date(), privatekey: "4827fb69dbc85b39204595dc870029d2a390a67b5275bd4588ae6567c01397d5" },
-      { address: "kvhccnbm95", balance: 100, totalin: 0, totalout: 0, firstseen: new Date(), privatekey: "c2b6cff7afc28c764ae239da2e785c1002f137dd9828416321f6c9a96b26f76e" },
+      { address: "bv8c78oh67", balance: 10, totalin: 0, totalout: 0, firstseen: new Date(), privatekey: "a350fa569fc53804c4282afbebafeba973c33238704815ea41fa8eec1f13a791" },
+      { address: "bu1sdlbvwh", balance: 0, totalin: 0, totalout: 0, firstseen: new Date(), privatekey: "1f71334443b70c5c384894bc6308e9fcfb5b3103abb82eba6cd26d7767b5740c" },
+      { address: "byouf00c9w", balance: 0, totalin: 0, totalout: 0, firstseen: new Date(), privatekey: "75185375f6e1e0eecbbe875355de2e38b7e548efbc80985479f5870967dcd2df", alert: "Test alert", locked: true },
+      { address: "bw0zvuz4zn", balance: 25000, totalin: 0, totalout: 0, firstseen: new Date(), privatekey: "4827fb69dbc85b39204595dc870029d2a390a67b5275bd4588ae6567c01397d5" },
+      { address: "b7kflkbsep", balance: 100, totalin: 0, totalout: 0, firstseen: new Date(), privatekey: "c2b6cff7afc28c764ae239da2e785c1002f137dd9828416321f6c9a96b26f76e" },
     ])
   ]);
 

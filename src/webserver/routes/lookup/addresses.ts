@@ -52,23 +52,23 @@ export default (): Router => {
    *   "found": 3,
    *   "notFound": 1,
    *   "addresses": {
-   *     "kfakeaddy0": null,
-   *     "khugepoopy": {
-   *       "address": "khugepoopy",
+   *     "bfakeaddy0": null,
+   *     "bhugepoopy": {
+   *       "address": "bhugepoopy",
    *       "balance": 433,
    *       "totalin": 467572,
    *       "totalout": 242505,
    *       "firstseen": "2017-04-12T20:23:02.000Z"
    *     },
-   *     "kreichdyes": {
-   *       "address": "kreichdyes",
+   *     "breichdyes": {
+   *       "address": "breichdyes",
    *       "balance": 210,
    *       "totalin": 65518,
    *       "totalout": 69767,
    *       "firstseen": "2018-06-28T17:30:50.000Z"
    *     },
-   *     "kre3w0i79j": {
-   *       "address": "kre3w0i79j",
+   *     "b70dxcdr3n": {
+   *       "address": "b70dxcdr3n",
    *       "balance": 0,
    *       "totalin": 227329,
    *       "totalout": 227277,

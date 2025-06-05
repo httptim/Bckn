@@ -25,7 +25,7 @@ import {
   ErrorInvalidParameter,
   ErrorSolutionDuplicate,
   ErrorSolutionIncorrect,
-  KristError
+  BcknError
 } from "../../errors/index.js";
 import { addressToJson } from "../../krist/addresses/index.js";
 import { blockToJson, getLastBlock } from "../../krist/blocks/index.js";
@@ -80,7 +80,7 @@ export default (): Router => {
         await ctrlSubmitBlock(req, address, nonce);
         res.send("Block solved");
       } catch (err: unknown) {
-        if (err instanceof KristError) {
+        if (err instanceof BcknError) {
           // Convert v2 errors to legacy API errors
           if (err.errorString === "mining_disabled")
             return res.send("Mining disabled");

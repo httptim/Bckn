@@ -21,7 +21,7 @@
 
 import chalkT from "chalk-template";
 
-import { KristError } from "./KristError.js";
+import { BcknError } from "./BcknError.js";
 
 export interface ErrorResponse {
   ok: false;
@@ -30,7 +30,7 @@ export interface ErrorResponse {
 }
 
 export function errorToJson(err: unknown): ErrorResponse {
-  if (err instanceof KristError) {
+  if (err instanceof BcknError) {
     return {
       ok: false,
       error: err.errorString,

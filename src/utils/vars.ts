@@ -28,13 +28,13 @@ export const TEST_DEBUG = !!process.env.TEST_DEBUG;
 // =============================================================================
 // Database
 // =============================================================================
-export const MAIN_DB_NAME = process.env.DB_NAME as string | undefined || "krist";
-export const MAIN_DB_USER = process.env.DB_USER as string | undefined || "krist";
+export const MAIN_DB_NAME = process.env.DB_NAME as string | undefined || "bckn";
+export const MAIN_DB_USER = process.env.DB_USER as string | undefined || "bckn";
 export const MAIN_DB_PASS = process.env.DB_PASS as string;
 export const MAIN_DB_HOST = process.env.DB_HOST as string | undefined || "127.0.0.1";
 
-export const TEST_DB_NAME = process.env.TEST_DB_NAME as string | undefined || "test_krist";
-export const TEST_DB_USER = process.env.TEST_DB_USER as string | undefined || "test_krist";
+export const TEST_DB_NAME = process.env.TEST_DB_NAME as string | undefined || "test_bckn";
+export const TEST_DB_USER = process.env.TEST_DB_USER as string | undefined || "test_bckn";
 export const TEST_DB_PASS = process.env.TEST_DB_PASS as string;
 export const TEST_DB_HOST = process.env.TEST_DB_HOST as string | undefined || "127.0.0.1";
 
@@ -60,8 +60,8 @@ export const REDIS_HOST = process.env.REDIS_HOST as string | undefined || "127.0
 export const REDIS_PORT = parseInt(process.env.REDIS_PORT as string | undefined || "6379");
 export const REDIS_PASS = process.env.REDIS_PASS as string | undefined;
 export const REDIS_PREFIX = TEST
-  ? (process.env.TEST_REDIS_PREFIX || "test_krist:")
-  : (process.env.REDIS_PREFIX || "krist:");
+  ? (process.env.TEST_REDIS_PREFIX || "test_bckn:")
+  : (process.env.REDIS_PREFIX || "bckn:");
 
 // =============================================================================
 // Webserver

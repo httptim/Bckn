@@ -137,7 +137,7 @@ export default (): Router => {
    * @apiGroup LookupGroup
    * @apiVersion 2.8.0
    *
-   * @apiDescription Search the Krist network for transactions that match the given query. The search is more in-depth
+   * @apiDescription Search the Bckn network for transactions that match the given query. The search is more in-depth
    * (and thus slower) than `/search`.
    *
    * - Transactions are searched by address involved (from, to)
@@ -162,7 +162,7 @@ export default (): Router => {
    * {
    *   "ok": true,
    *   "query": {
-   *     "originalQuery": "sc.kst",
+   *     "originalQuery": "sc.bacon",
    *     "matchAddress": false,
    *     "matchName": true,
    *     "matchBlock": false,
