@@ -251,10 +251,14 @@ server {
 }
 
 server {
-    listen 443 ssl http2;
+    listen 443 ssl;
+    http2 on;
     server_name bckn.dev;
 
     # SSL configuration will be added by certbot
+    # Temporary self-signed cert until certbot runs
+    ssl_certificate /etc/ssl/certs/ssl-cert-snakeoil.pem;
+    ssl_certificate_key /etc/ssl/private/ssl-cert-snakeoil.key;
     
     # Logging
     access_log /var/log/nginx/bckn.dev.access.log;
@@ -340,10 +344,14 @@ server {
 }
 
 server {
-    listen 443 ssl http2;
+    listen 443 ssl;
+    http2 on;
     server_name ws.bckn.dev;
 
     # SSL configuration will be added by certbot
+    # Temporary self-signed cert until certbot runs
+    ssl_certificate /etc/ssl/certs/ssl-cert-snakeoil.pem;
+    ssl_certificate_key /etc/ssl/private/ssl-cert-snakeoil.key;
     
     # Logging
     access_log /var/log/nginx/ws.bckn.dev.access.log;
