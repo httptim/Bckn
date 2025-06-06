@@ -110,13 +110,24 @@ export async function createBlock(
     const oldWork = await getWork();
 
     const seconds = (time.getTime() - lastBlock.time.getTime()) / 1000;
-    const targetWork = seconds * oldWork / SECONDS_PER_BLOCK;
-    const diff = targetWork - oldWork;
-
-    const newWork = Math.round(Math.max(
-      Math.min(oldWork + diff * WORK_FACTOR, MAX_WORK),
-      MIN_WORK
-    ));
+    
+    // Aggressive difficulty drop after 3 hours (10800 seconds)
+    let newWork: number;
+    if (seconds > 10800) { // 3 hours
+      // Drop to near minimum - exponential decay based on time
+      const hoursElapsed = seconds / 3600;
+      const dropFactor = Math.pow(0.1, hoursElapsed / 3); // 90% drop every 3 hours
+      newWork = Math.round(Math.max(oldWork * dropFactor, MIN_WORK));
+      console.log(chalkT`{yellow [Bckn]} Long block time detected (${Math.floor(seconds/60)} minutes) - dropping work from ${oldWork} to ${newWork}`);
+    } else {
+      // Normal adjustment
+      const targetWork = seconds * oldWork / SECONDS_PER_BLOCK;
+      const diff = targetWork - oldWork;
+      newWork = Math.round(Math.max(
+        Math.min(oldWork + diff * WORK_FACTOR, MAX_WORK),
+        MIN_WORK
+      ));
+    }
 
     console.log(chalkT`{bold [Bckn]} Submitting {bold ${value} BCN} block by {bold ${address}} at {cyan ${dayjs().format("HH:mm:ss DD/MM/YYYY")}} ${logDetails}`);
     promBlockCounter.inc();
