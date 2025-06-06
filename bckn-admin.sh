@@ -7,6 +7,7 @@ DB_HOST="localhost"
 DB_USER="root"
 DB_PASS="770f8169a320af3b91b56c1239d80fc57c01e716e0e8b690a13fc2a4443e877e"
 DB_NAME="krist"
+# Note: Redis access may require redis-cli installed: sudo apt-get install redis-tools
 
 # Colors for output
 RED='\033[0;31m'
@@ -84,6 +85,12 @@ show_help() {
     echo "  find-name <term>                  Search names by partial match"
     echo "  active-miners [hours]             Show recently active miners"
     echo "  whale-watch [threshold]           Monitor large transactions"
+    echo ""
+    echo -e "${GREEN}Work/Difficulty Commands:${NC}"
+    echo "  work-show                         Show current work/difficulty"
+    echo "  work-set <value>                  Set work to specific value"
+    echo "  work-reset                        Recalculate work based on last block"
+    echo "  work-simulate <hours>             Show what work would be after X hours"
     echo ""
     echo -e "${GREEN}Utility Commands:${NC}"
     echo "  supply-check                      Verify total supply calculations"
@@ -507,6 +514,94 @@ case "$1" in
                    (SELECT COUNT(DISTINCT address) FROM blocks WHERE time > DATE_SUB(NOW(), INTERVAL 24 HOUR)) as unique_miners_24h,
                    (SELECT MAX(time) FROM blocks) as last_block_time,
                    (SELECT AVG(difficulty) FROM blocks WHERE id > (SELECT MAX(id) - 100 FROM blocks)) as avg_recent_difficulty;"
+        ;;
+
+    # Work/Difficulty commands
+    "work-show")
+        echo -e "${CYAN}Current Work/Difficulty Status:${NC}"
+        # Get from Redis
+        WORK=$(redis-cli -h $DB_HOST ${DB_PASS:+-a $DB_PASS} GET bckn:work 2>/dev/null || echo "19732")
+        echo "Current work value: $WORK"
+        
+        # Get last block time
+        query_sql "SELECT MAX(id) as height, MAX(time) as last_block_time FROM blocks;"
+        
+        # Calculate time since last block
+        LAST_BLOCK_TIME=$(exec_sql "SELECT UNIX_TIMESTAMP(MAX(time)) FROM blocks;")
+        CURRENT_TIME=$(date +%s)
+        if [ ! -z "$LAST_BLOCK_TIME" ] && [ "$LAST_BLOCK_TIME" != "NULL" ]; then
+            ELAPSED=$((CURRENT_TIME - LAST_BLOCK_TIME))
+            HOURS=$(echo "scale=2; $ELAPSED / 3600" | bc)
+            echo -e "\nTime since last block: $HOURS hours"
+            
+            if (( $(echo "$HOURS >= 3" | bc -l) )); then
+                echo -e "${YELLOW}Note: Difficulty should drop after 3 hours of no blocks${NC}"
+            fi
+        fi
+        ;;
+        
+    "work-set")
+        if [ -z "$2" ]; then
+            echo -e "${RED}Error: Work value required${NC}"
+            exit 1
+        fi
+        NEW_WORK=$2
+        
+        # Validate work value
+        if ! [[ "$NEW_WORK" =~ ^[0-9]+$ ]] || [ "$NEW_WORK" -lt 1 ] || [ "$NEW_WORK" -gt 100000 ]; then
+            echo -e "${RED}Error: Work must be between 1 and 100000${NC}"
+            exit 1
+        fi
+        
+        # Set in Redis
+        redis-cli -h $DB_HOST ${DB_PASS:+-a $DB_PASS} SET bckn:work "$NEW_WORK" >/dev/null 2>&1
+        
+        if [ $? -eq 0 ]; then
+            echo -e "${GREEN}✓ Work set to $NEW_WORK${NC}"
+        else
+            echo -e "${RED}Failed to set work. Check Redis connection.${NC}"
+            echo "You may need to run this directly on the server:"
+            echo "redis-cli -a YOUR_REDIS_PASSWORD SET bckn:work $NEW_WORK"
+        fi
+        ;;
+        
+    "work-reset")
+        echo -e "${CYAN}Recalculating work based on last block...${NC}"
+        # Get last block time and current work
+        LAST_BLOCK=$(query_sql "SELECT id, time, UNIX_TIMESTAMP(time) as ts FROM blocks ORDER BY id DESC LIMIT 1;")
+        CURRENT_WORK=$(redis-cli -h $DB_HOST ${DB_PASS:+-a $DB_PASS} GET bckn:work 2>/dev/null || echo "19732")
+        
+        echo "Current work: $CURRENT_WORK"
+        echo "This would need to be done by the Bckn server on next block submission."
+        echo "To force recalculation, mine a block or wait for natural adjustment."
+        ;;
+        
+    "work-simulate")
+        HOURS=${2:-3}
+        CURRENT_WORK=$(redis-cli -h $DB_HOST ${DB_PASS:+-a $DB_PASS} GET bckn:work 2>/dev/null || echo "19732")
+        
+        echo -e "${CYAN}Work simulation for $HOURS hours without blocks:${NC}"
+        echo "Current work: $CURRENT_WORK"
+        echo ""
+        
+        # Calculate based on new algorithm
+        if (( $(echo "$HOURS >= 3" | bc -l) )); then
+            DROP_FACTOR=$(echo "scale=6; 0.1 ^ ($HOURS / 3)" | bc)
+            NEW_WORK=$(echo "scale=0; $CURRENT_WORK * $DROP_FACTOR" | bc)
+            if [ "$NEW_WORK" -lt 1 ]; then NEW_WORK=1; fi
+            
+            echo "After $HOURS hours: Work would drop to ~$NEW_WORK"
+            echo "Drop factor: $(echo "scale=2; (1 - $DROP_FACTOR) * 100" | bc)% reduction"
+        else
+            echo "After $HOURS hours: Work would stay at $CURRENT_WORK"
+            echo "(Aggressive drop only triggers after 3 hours)"
+        fi
+        
+        echo ""
+        echo "Examples:"
+        echo "  3 hours: $(echo "scale=0; $CURRENT_WORK * 0.1" | bc)"
+        echo "  6 hours: $(echo "scale=0; $CURRENT_WORK * 0.01" | bc)"
+        echo "  9 hours: $(echo "scale=0; $CURRENT_WORK * 0.001" | bc)"
         ;;
 
     # Utility commands
